@@ -28,7 +28,11 @@ public class User implements UserDetails{
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role;
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Property> properties;
 
     // UserDetails implementation
     @Override
@@ -59,4 +63,6 @@ public class User implements UserDetails{
     public boolean isEnabled() {
         return true;
     }
+
+
 }

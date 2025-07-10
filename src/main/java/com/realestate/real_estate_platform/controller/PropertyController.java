@@ -1,5 +1,6 @@
 package com.realestate.real_estate_platform.controller;
 
+import com.realestate.real_estate_platform.dto.PropertyDTO;
 import com.realestate.real_estate_platform.entity.Property;
 import com.realestate.real_estate_platform.entity.PropertyType;
 import com.realestate.real_estate_platform.entity.User;
@@ -7,7 +8,10 @@ import com.realestate.real_estate_platform.service.PropertyImageService;
 import com.realestate.real_estate_platform.service.PropertyService;
 import com.realestate.real_estate_platform.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +32,7 @@ public class PropertyController {
 
     // 🔼 Post a new property (only for authenticated users)
     @PostMapping
+    @PreAuthorize("hasAuthority('SELLER')")
     public ResponseEntity<Property> createProperty(@RequestBody Property property,
                                                    @AuthenticationPrincipal UserDetails userDetails) {
         User user = userRepository.findByEmail(userDetails.getUsername()).orElseThrow();
@@ -35,14 +40,27 @@ public class PropertyController {
         return ResponseEntity.ok(propertyService.createProperty(property));
     }
 
+    // to filter the property by type RENT,SALE
     @GetMapping("/type/{type}")
     public ResponseEntity<List<Property>> getByType(@PathVariable PropertyType type) {
         return ResponseEntity.ok(propertyService.getByType(type));
     }
 
-    @GetMapping("/search")
+    //to filter the property by location
+    @GetMapping("/searc")
     public ResponseEntity<List<Property>> searchByLocation(@RequestParam String location) {
         return ResponseEntity.ok(propertyService.getByLocation(location));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<PropertyDTO>> searchProperties(
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice
+    ) {
+        List<PropertyDTO> results = propertyService.searchProperties(location, type, minPrice, maxPrice);
+        return ResponseEntity.ok(results);
     }
 
     @GetMapping("/{id}")
@@ -52,11 +70,28 @@ public class PropertyController {
     }
 
 
+    // PropertyController.java
+    @GetMapping("/my-properties")
+    @PreAuthorize("hasAuthority('SELLER')")
+    public ResponseEntity<List<Property>> getMyProperties(Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(propertyService.getPropertiesByOwner(email));
+    }
+
     @PostMapping("/{propertyId}/images")
     public ResponseEntity<String> uploadImage(@PathVariable Long propertyId,
                                               @RequestParam("file") MultipartFile file) throws IOException {
         String message = imageService.uploadImage(propertyId, file);
         return ResponseEntity.ok(message);
+    }
+
+    @PutMapping("/{propertyId}")
+    @PreAuthorize("hasAuthority('SELLER')")
+    public ResponseEntity<Property> updateProperty(@PathVariable Long propertyId,
+                                                   @RequestBody Property updatedProperty,
+                                                   Authentication authentication) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(propertyService.updateProperty(propertyId, updatedProperty, email));
     }
 
     // 👀 Get all properties
@@ -72,10 +107,14 @@ public class PropertyController {
         return ResponseEntity.ok(propertyService.getPropertiesByUser(user.getId()));
     }
 
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProperty(@PathVariable Long id) {
-        propertyService.deleteProperty(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{propertyId}")
+    @PreAuthorize("hasAuthority('SELLER')")
+    public ResponseEntity<String> deleteProperty(@PathVariable Long propertyId,
+                                                 Authentication authentication) {
+        String email = authentication.getName();
+        propertyService.deleteProperty(propertyId, email);
+        return ResponseEntity.ok("Property deleted successfully");
     }
+
+
 }
