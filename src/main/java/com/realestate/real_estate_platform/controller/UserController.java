@@ -17,7 +17,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/dashboard")
-    @PreAuthorize("hasAuthority('BUYER')")
+    @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<BuyerDashboardDTO> getBuyerDashboard(Authentication authentication) {
         String email = authentication.getName();
         return ResponseEntity.ok(userService.getDashboardData(email));

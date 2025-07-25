@@ -32,12 +32,14 @@ public class PropertyController {
 
     // 🔼 Post a new property (only for authenticated users)
     @PostMapping
-    @PreAuthorize("hasAuthority('SELLER')")
-    public ResponseEntity<Property> createProperty(@RequestBody Property property,
-                                                   @AuthenticationPrincipal UserDetails userDetails) {
+   // public ResponseEntity<Property> createProperty(@RequestBody Property property,
+                                               //    @AuthenticationPrincipal UserDetails userDetails)
+    public String createProperty(@RequestBody Property property,
+                                                   @AuthenticationPrincipal UserDetails userDetails){
         User user = userRepository.findByEmail(userDetails.getUsername()).orElseThrow();
         property.setOwner(user);
-        return ResponseEntity.ok(propertyService.createProperty(property));
+        propertyService.createProperty(property);
+        return "Property posted successfully";
     }
 
     // to filter the property by type RENT,SALE
@@ -72,7 +74,7 @@ public class PropertyController {
 
     // PropertyController.java
     @GetMapping("/my-properties")
-    @PreAuthorize("hasAuthority('SELLER')")
+
     public ResponseEntity<List<Property>> getMyProperties(Authentication authentication) {
         String email = authentication.getName();
         return ResponseEntity.ok(propertyService.getPropertiesByOwner(email));
@@ -86,7 +88,6 @@ public class PropertyController {
     }
 
     @PutMapping("/{propertyId}")
-    @PreAuthorize("hasAuthority('SELLER')")
     public ResponseEntity<Property> updateProperty(@PathVariable Long propertyId,
                                                    @RequestBody Property updatedProperty,
                                                    Authentication authentication) {
@@ -108,7 +109,7 @@ public class PropertyController {
     }
 
     @DeleteMapping("/{propertyId}")
-    @PreAuthorize("hasAuthority('SELLER')")
+
     public ResponseEntity<String> deleteProperty(@PathVariable Long propertyId,
                                                  Authentication authentication) {
         String email = authentication.getName();

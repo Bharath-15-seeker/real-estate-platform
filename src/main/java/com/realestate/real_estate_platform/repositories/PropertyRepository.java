@@ -15,15 +15,16 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
     List<Property> findByOwnerId(Long ownerId);
     List<Property> findByType(PropertyType type);
 
-    @Query("SELECT p FROM Property p WHERE " +
-            "(:location IS NULL OR p.location LIKE %:location%) AND " +
-            "(:type IS NULL OR p.type = :type) AND " +
-            "(:minPrice IS NULL OR p.price >= :minPrice) AND " +
-            "(:maxPrice IS NULL OR p.price <= :maxPrice)")
+    @Query("SELECT p FROM Property p WHERE "
+            + "(:location IS NULL OR p.location = :location) AND "
+            + "(:type IS NULL OR p.type = :type) AND "
+            + "(:minPrice IS NULL OR p.price >= :minPrice) AND "
+            + "(:maxPrice IS NULL OR p.price <= :maxPrice)")
     List<Property> search(@Param("location") String location,
-                          @Param("type") String type,
+                          @Param("type") PropertyType type,
                           @Param("minPrice") Double minPrice,
                           @Param("maxPrice") Double maxPrice);
+
 
 
     List<Property> findByLocationContainingIgnoreCase(String location);

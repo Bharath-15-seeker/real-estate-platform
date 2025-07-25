@@ -41,8 +41,15 @@ public class Property {
     private List<Review> reviews;
 
     // Link to the user who posted the property
+
     @ManyToOne
     @JoinColumn(name = "owner_id")
+    @JsonIgnoreProperties("properties") // ignore the "properties" field inside owner
     private User owner;
+
+    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Contact> contacts;
+
+
 }
 

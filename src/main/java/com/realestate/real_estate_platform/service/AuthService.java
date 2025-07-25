@@ -4,6 +4,7 @@ import com.realestate.real_estate_platform.dto.AuthResponse;
 import com.realestate.real_estate_platform.dto.LoginRequest;
 import com.realestate.real_estate_platform.dto.RegisterRequest;
 
+import com.realestate.real_estate_platform.entity.Role;
 import com.realestate.real_estate_platform.entity.User;
 
 import com.realestate.real_estate_platform.repositories.UserRepository;
@@ -23,22 +24,42 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
+//    public AuthResponse register(RegisterRequest request) {
+//        if (userRepo.findByEmail(request.getEmail()).isPresent()) {
+//            throw new IllegalArgumentException("Email already in use");
+//        }
+//
+//        User user = User.builder()
+//                .name(request.getName())
+//                .email(request.getEmail())
+//                .password(passwordEncoder.encode(request.getPassword()))
+//                .role(request.getRole())
+//                .build();
+//
+//        userRepo.save(user);
+//        String jwt = jwtService.generateToken(user);
+//        return new AuthResponse(jwt);
+//    }
+
     public AuthResponse register(RegisterRequest request) {
         if (userRepo.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already in use");
         }
 
+        Role role = request.getRole() != null ? request.getRole() : Role.USER;
+
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
+                .role(role)
                 .build();
 
         userRepo.save(user);
         String jwt = jwtService.generateToken(user);
         return new AuthResponse(jwt);
     }
+
 
     public AuthResponse login(LoginRequest request) {
         User user = (User) userRepo.findByEmail(request.getEmail())

@@ -28,9 +28,9 @@ public class PropertyService {
     private final UserRepository userRepository;
     private final ContactRepository contactRepository;
 
-    public Property createProperty(Property property) {
+    public void createProperty(Property property) {
         property.setPostedAt(LocalDateTime.now());
-        return propertyRepo.save(property);
+        propertyRepo.save(property);
     }
 
     public List<Property> getByType(PropertyType type) {
@@ -69,10 +69,25 @@ public class PropertyService {
         return propertyRepo.findAll();
     }
 
-    public List<PropertyDTO> searchProperties(String location, String type, Double minPrice, Double maxPrice) {
+//    public List<PropertyDTO> searchProperties(String location, String type, Double minPrice, Double maxPrice) {
+//        List<Property> properties = propertyRepo.search(location, type, minPrice, maxPrice);
+//        return properties.stream().map(PropertyDTO::from).collect(Collectors.toList());
+//    }
+
+    public List<PropertyDTO> searchProperties(String location, String typeStr, Double minPrice, Double maxPrice) {
+        PropertyType type = null;
+        if (typeStr != null && !typeStr.isBlank()) {
+            try {
+                type = PropertyType.valueOf(typeStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Invalid property type: " + typeStr);
+            }
+        }
+
         List<Property> properties = propertyRepo.search(location, type, minPrice, maxPrice);
         return properties.stream().map(PropertyDTO::from).collect(Collectors.toList());
     }
+
 
 
     public List<Property> getPropertiesByUser(Long userId) {

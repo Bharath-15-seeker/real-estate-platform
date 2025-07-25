@@ -1,18 +1,15 @@
 package com.realestate.real_estate_platform.entity;
 
-
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Contact {
-
+public class PortfolioContact {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,8 +20,6 @@ public class Contact {
     private String message;
 
     @ManyToOne
-    @JoinColumn(name = "property_id", nullable = false)
-    private Property property;
-
+    private Portfolio portfolio;
 }
 
