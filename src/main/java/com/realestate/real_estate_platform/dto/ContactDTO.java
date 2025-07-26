@@ -29,7 +29,7 @@ public class ContactDTO {
                 .phone(contact.getPhone())
                 .message(contact.getMessage())
                 .propertyId(contact.getProperty().getId())
-                .propertyTitle(contact.getProperty().getTitle())
+                //.propertyTitle(contact.getProperty().getTitle())
                 .build();
     }
 

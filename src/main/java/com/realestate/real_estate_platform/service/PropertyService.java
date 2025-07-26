@@ -56,7 +56,7 @@ public class PropertyService {
             throw new AccessDeniedException("You are not the owner of this property");
         }
 
-        property.setTitle(updatedData.getTitle());
+       // property.setTitle(updatedData.getTitle());
         property.setDescription(updatedData.getDescription());
         property.setLocation(updatedData.getLocation());
         property.setPrice(updatedData.getPrice());
@@ -74,7 +74,7 @@ public class PropertyService {
 //        return properties.stream().map(PropertyDTO::from).collect(Collectors.toList());
 //    }
 
-    public List<PropertyDTO> searchProperties(String location, String typeStr, Double minPrice, Double maxPrice) {
+    public List<PropertyDTO> searchProperties(String location, String typeStr, Double minPrice, Double maxPrice,int bhk,String facing) {
         PropertyType type = null;
         if (typeStr != null && !typeStr.isBlank()) {
             try {
@@ -84,7 +84,7 @@ public class PropertyService {
             }
         }
 
-        List<Property> properties = propertyRepo.search(location, type, minPrice, maxPrice);
+        List<Property> properties = propertyRepo.search(location, type, minPrice, maxPrice,bhk,facing);
         return properties.stream().map(PropertyDTO::from).collect(Collectors.toList());
     }
 

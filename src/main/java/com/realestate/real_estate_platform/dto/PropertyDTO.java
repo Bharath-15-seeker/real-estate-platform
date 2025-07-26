@@ -27,7 +27,7 @@ public class PropertyDTO {
     public static PropertyDTO from(Property property) {
         PropertyDTO dto = new PropertyDTO();
         dto.setId(property.getId());
-        dto.setTitle(property.getTitle());
+       // dto.setTitle(property.getTitle());
         dto.setDescription(property.getDescription());
         dto.setPrice(property.getPrice());
         dto.setLocation(property.getLocation());

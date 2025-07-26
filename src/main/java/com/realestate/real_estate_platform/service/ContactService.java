@@ -32,7 +32,7 @@ public class ContactService {
 
         if (contact.getProperty() != null) {
             dto.setPropertyId(contact.getProperty().getId());
-            dto.setPropertyTitle(contact.getProperty().getTitle());
+           // dto.setPropertyTitle(contact.getProperty().getTitle());
         }
 
         return dto;

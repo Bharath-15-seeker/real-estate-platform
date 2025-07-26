@@ -19,11 +19,15 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
             + "(:location IS NULL OR p.location = :location) AND "
             + "(:type IS NULL OR p.type = :type) AND "
             + "(:minPrice IS NULL OR p.price >= :minPrice) AND "
-            + "(:maxPrice IS NULL OR p.price <= :maxPrice)")
+            + "(:maxPrice IS NULL OR p.price <= :maxPrice) AND "
+            + "(:bhk IS NULL OR p.bhk = :bhk) AND "
+            + "(:facing IS NULL OR p.facing = :facing)")
     List<Property> search(@Param("location") String location,
                           @Param("type") PropertyType type,
                           @Param("minPrice") Double minPrice,
-                          @Param("maxPrice") Double maxPrice);
+                          @Param("maxPrice") Double maxPrice,
+                          @Param("bhk") int bhk,
+                          @Param("facing") String facing);
 
 
 

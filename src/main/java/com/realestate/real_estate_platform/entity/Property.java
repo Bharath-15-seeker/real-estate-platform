@@ -21,11 +21,18 @@ public class Property {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String title;
     private String description;
     private String location;
+    private int bhk;
+
+    private String facing;
+    private String Address;
+    private Double sqft;
 
     private Double price;
+
+    @Enumerated(EnumType.STRING)
+    private Prop_type prop_type;
 
     @Enumerated(EnumType.STRING)
     private PropertyType type; // RENT, SALE, LAND

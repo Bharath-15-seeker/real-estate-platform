@@ -8,7 +8,7 @@ public class PropertyMapper {
     public static PropertyDTO toDTO(Property property) {
         PropertyDTO dto = new PropertyDTO();
         dto.setId(property.getId());
-        dto.setTitle(property.getTitle());
+       // dto.setTitle(property.getTitle());
         dto.setDescription(property.getDescription());
         dto.setLocation(property.getLocation());
         dto.setPrice(property.getPrice());
