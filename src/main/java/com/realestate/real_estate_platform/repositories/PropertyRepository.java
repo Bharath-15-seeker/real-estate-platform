@@ -1,5 +1,6 @@
 package com.realestate.real_estate_platform.repositories;
 
+import com.realestate.real_estate_platform.entity.Prop_type;
 import com.realestate.real_estate_platform.entity.Property;
 import com.realestate.real_estate_platform.entity.PropertyType;
 import com.realestate.real_estate_platform.entity.User;
@@ -21,13 +22,16 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
             + "(:minPrice IS NULL OR p.price >= :minPrice) AND "
             + "(:maxPrice IS NULL OR p.price <= :maxPrice) AND "
             + "(:bhk IS NULL OR p.bhk = :bhk) AND "
-            + "(:facing IS NULL OR p.facing = :facing)")
+            + "(:facing IS NULL OR p.facing = :facing) AND "
+            + "(:propType IS NULL OR p.prop_type = :propType)")
     List<Property> search(@Param("location") String location,
                           @Param("type") PropertyType type,
                           @Param("minPrice") Double minPrice,
                           @Param("maxPrice") Double maxPrice,
-                          @Param("bhk") int bhk,
-                          @Param("facing") String facing);
+                          @Param("bhk") Integer bhk,
+                          @Param("facing") String facing,
+                          @Param("propType") Prop_type propType);
+
 
 
 

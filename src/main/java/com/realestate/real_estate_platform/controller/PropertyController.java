@@ -9,8 +9,8 @@ import com.realestate.real_estate_platform.service.PropertyService;
 import com.realestate.real_estate_platform.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,8 +18,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/properties")
@@ -31,16 +36,18 @@ public class PropertyController {
     private final UserRepository userRepository;
 
     // 🔼 Post a new property (only for authenticated users)
-    @PostMapping
-   // public ResponseEntity<Property> createProperty(@RequestBody Property property,
-                                               //    @AuthenticationPrincipal UserDetails userDetails)
-    public String createProperty(@RequestBody Property property,
-                                                   @AuthenticationPrincipal UserDetails userDetails){
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String createProperty(
+            @RequestPart("property") Property property,
+            @RequestPart(value = "images", required = false) MultipartFile[] images,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
         User user = userRepository.findByEmail(userDetails.getUsername()).orElseThrow();
         property.setOwner(user);
-        propertyService.createProperty(property);
+        propertyService.createProperty(property, images);
         return "Property posted successfully";
     }
+
 
     // to filter the property by type RENT,SALE
     @GetMapping("/type/{type}")
@@ -60,11 +67,12 @@ public class PropertyController {
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) int bhk,
-            @RequestParam(required = false) String facing
+            @RequestParam(required = false) Integer bhk,
+            @RequestParam(required = false) String facing,
+            @RequestParam(required = false) String prop_type
 
     ) {
-        List<PropertyDTO> results = propertyService.searchProperties(location, type, minPrice, maxPrice,bhk,facing);
+        List<PropertyDTO> results = propertyService.searchProperties(location, type, minPrice, maxPrice,bhk,facing, prop_type);
         return ResponseEntity.ok(results);
     }
 

@@ -32,6 +32,7 @@ public class Property {
     private Double price;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "prop_type")
     private Prop_type prop_type;
 
     @Enumerated(EnumType.STRING)
@@ -39,9 +40,9 @@ public class Property {
 
     private LocalDateTime postedAt;
 
-    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("property") // prevents infinite recursion during JSON serialization
-    private List<PropertyImage> images = new ArrayList<>();
+//    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JsonIgnoreProperties("property") // prevents infinite recursion during JSON serialization
+//    private List<PropertyImage> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("property")
@@ -56,6 +57,12 @@ public class Property {
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Contact> contacts;
+
+
+    @ElementCollection
+    @CollectionTable(name = "property_images", joinColumns = @JoinColumn(name = "property_id"))
+    @Column(name = "image_url")
+    private List<String> imageUrls = new ArrayList<>();
 
 
 }

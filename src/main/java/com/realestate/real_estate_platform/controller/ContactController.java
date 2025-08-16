@@ -63,7 +63,7 @@ public class ContactController {
     }
 
 
-    @PostMapping("/{portfolioId}/conatct")
+    @PostMapping("/{portfolioId}/portfolio")
     public ResponseEntity<PortfolioContact> contactPortfolioOwner(
             @PathVariable Long portfolioId,
             @RequestBody PortfolioContact contactRequest) {

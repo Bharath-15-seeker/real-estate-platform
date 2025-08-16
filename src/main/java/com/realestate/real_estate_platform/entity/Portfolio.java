@@ -1,5 +1,6 @@
 package com.realestate.real_estate_platform.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,8 +26,15 @@ public class Portfolio {
     private Boolean isPublic = false; // Rename this
 
 
+    @JsonIgnore
     @ManyToOne
+    @JoinColumn(name = "owner_id")
     private User owner;
+
+    @ElementCollection
+    @CollectionTable(name = "portfolio_images", joinColumns = @JoinColumn(name = "portfolio_id"))
+    @Column(name = "image_url")
+    private List<String> workimages = new ArrayList<>();
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL)
     private List<PortfolioWork> works = new ArrayList<>();

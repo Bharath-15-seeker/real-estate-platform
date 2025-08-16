@@ -40,7 +40,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/builder/**").permitAll()
                         .requestMatchers("/api/portfolio/**").permitAll()
+                        .requestMatchers("/api/contact/**").permitAll()
                         .requestMatchers("/api/admin/**").permitAll()
+                        .requestMatchers("/api/properties/search").permitAll()
                         .requestMatchers("/api/properties/**").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -67,7 +69,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("http://localhost:5173");
+        configuration.addAllowedOrigin("http://127.0.0.1:5500");
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);

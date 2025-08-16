@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,12 +36,10 @@ public class PropertyDTO {
         dto.setPostedAt(property.getPostedAt());
 
         // Optional: Include image URLs
-        if (property.getImages() != null) {
-            dto.setImageUrls(property.getImages()
-                    .stream()
-                    .map(img -> img.getUrl())
-                    .collect(Collectors.toList()));
+        if (property.getImageUrls() != null) {
+            dto.setImageUrls(new ArrayList<>(property.getImageUrls()));
         }
+
 
         // Optional: Include owner name/email
         if (property.getOwner() != null) {

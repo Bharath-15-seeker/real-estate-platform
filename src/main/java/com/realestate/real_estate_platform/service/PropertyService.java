@@ -3,6 +3,7 @@ package com.realestate.real_estate_platform.service;
 
 
 import com.realestate.real_estate_platform.dto.PropertyDTO;
+import com.realestate.real_estate_platform.entity.Prop_type;
 import com.realestate.real_estate_platform.entity.Property;
 import com.realestate.real_estate_platform.entity.PropertyType;
 import com.realestate.real_estate_platform.entity.User;
@@ -11,16 +12,23 @@ import com.realestate.real_estate_platform.repositories.PropertyRepository;
 import com.realestate.real_estate_platform.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;  // ✅ correct
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class PropertyService {
 
@@ -28,10 +36,41 @@ public class PropertyService {
     private final UserRepository userRepository;
     private final ContactRepository contactRepository;
 
-    public void createProperty(Property property) {
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+
+
+    public void createProperty(Property property, MultipartFile[] images) {
         property.setPostedAt(LocalDateTime.now());
+
+        List<String> imagePaths = new ArrayList<>();
+
+        if (images != null) {
+            // Ensure upload directory exists
+            File uploadPath = new File(uploadDir);
+            if (!uploadPath.exists()) {
+                uploadPath.mkdirs();
+            }
+
+            for (MultipartFile image : images) {
+                try {
+                    String filename = UUID.randomUUID() + "_" + image.getOriginalFilename();
+                    File destinationFile = new File(uploadPath, filename);
+
+                    image.transferTo(destinationFile);
+
+                    // Store relative path (for frontend access)
+                    imagePaths.add("/uploads/" + filename);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        property.setImageUrls(imagePaths);
         propertyRepo.save(property);
     }
+
 
     public List<Property> getByType(PropertyType type) {
         return propertyRepo.findByType(type);
@@ -74,7 +113,7 @@ public class PropertyService {
 //        return properties.stream().map(PropertyDTO::from).collect(Collectors.toList());
 //    }
 
-    public List<PropertyDTO> searchProperties(String location, String typeStr, Double minPrice, Double maxPrice,int bhk,String facing) {
+    public List<PropertyDTO> searchProperties(String location, String typeStr, Double minPrice, Double maxPrice,Integer bhk,String facing,String proptype) {
         PropertyType type = null;
         if (typeStr != null && !typeStr.isBlank()) {
             try {
@@ -83,8 +122,15 @@ public class PropertyService {
                 throw new RuntimeException("Invalid property type: " + typeStr);
             }
         }
-
-        List<Property> properties = propertyRepo.search(location, type, minPrice, maxPrice,bhk,facing);
+        Prop_type prop_type=null;
+        if(proptype !=null && !proptype.isBlank()){
+            try {
+                prop_type = Prop_type.valueOf(proptype.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Invalid property type: " + proptype);
+            }
+        }
+        List<Property> properties = propertyRepo.search(location, type, minPrice, maxPrice,bhk,facing,prop_type);
         return properties.stream().map(PropertyDTO::from).collect(Collectors.toList());
     }
 

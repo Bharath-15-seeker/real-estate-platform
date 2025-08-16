@@ -3,18 +3,25 @@ package com.realestate.real_estate_platform.controller;
 import com.realestate.real_estate_platform.dto.PortfolioDTO;
 import com.realestate.real_estate_platform.entity.Portfolio;
 import com.realestate.real_estate_platform.entity.PortfolioContact;
+import com.realestate.real_estate_platform.entity.Property;
 import com.realestate.real_estate_platform.entity.User;
 import com.realestate.real_estate_platform.repositories.PortfolioContactRepository;
 import com.realestate.real_estate_platform.repositories.PortfolioRepository;
+import com.realestate.real_estate_platform.repositories.UserRepository;
 import com.realestate.real_estate_platform.service.EmailService;
 import com.realestate.real_estate_platform.service.PortfolioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
- import java.util.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.*;
 import java.security.Principal;
 
 @RestController
@@ -23,6 +30,7 @@ import java.security.Principal;
 public class PortfolioController {
 
     private final PortfolioService portfolioService;
+    private final UserRepository userRepository;
 
     @Autowired
     private PortfolioRepository portfolioRepo;
@@ -35,6 +43,18 @@ public class PortfolioController {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String createProperty(
+            @RequestPart("property") Portfolio portfolio,
+            @RequestPart(value = "images", required = false) MultipartFile[] images,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        User user = userRepository.findByEmail(userDetails.getUsername()).orElseThrow();
+        portfolio.setOwner(user);
+        portfolioService.createProperty(portfolio, images);
+        return "Property posted successfully";
+    }
 
     @PostMapping
     public ResponseEntity<Portfolio> createPortfolio(
@@ -73,23 +93,23 @@ public class PortfolioController {
         return ResponseEntity.ok(portfolio);
     }
 
-    @PostMapping("/{portfolioId}/contact")
-    public ResponseEntity<PortfolioContact> contactPortfolioOwner(
-            @PathVariable Long portfolioId,
-            @RequestBody PortfolioContact contactRequest) {
-
-        Portfolio portfolio = portfolioRepo.findById(portfolioId)
-                .orElseThrow(() -> new RuntimeException("Portfolio not found"));
-
-        contactRequest.setPortfolio(portfolio);
-        PortfolioContact saved = portfolioContactRepository.save(contactRequest);
-
-        // Send email to portfolio owner
-        String ownerEmail = portfolio.getOwner().getEmail();
-        sendPortfolioContactEmail(ownerEmail, contactRequest);
-
-        return ResponseEntity.ok(saved);
-    }
+//    @PostMapping("/{portfolioId}/contact")
+//    public ResponseEntity<PortfolioContact> contactPortfolioOwner(
+//            @PathVariable Long portfolioId,
+//            @RequestBody PortfolioContact contactRequest) {
+//
+//        Portfolio portfolio = portfolioRepo.findById(portfolioId)
+//                .orElseThrow(() -> new RuntimeException("Portfolio not found"));
+//
+//        contactRequest.setPortfolio(portfolio);
+//        PortfolioContact saved = portfolioContactRepository.save(contactRequest);
+//
+//        // Send email to portfolio owner
+//        String ownerEmail = portfolio.getOwner().getEmail();
+//        sendPortfolioContactEmail(ownerEmail, contactRequest);
+//
+//        return ResponseEntity.ok(saved);
+//    }
 
 
     private void sendPortfolioContactEmail(String to, PortfolioContact contactRequest) {

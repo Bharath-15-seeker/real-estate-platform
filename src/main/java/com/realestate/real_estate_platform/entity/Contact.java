@@ -2,6 +2,7 @@ package com.realestate.real_estate_platform.entity;
 
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -24,6 +25,7 @@ public class Contact {
 
     @ManyToOne
     @JoinColumn(name = "property_id", nullable = false)
+    @JsonIgnore
     private Property property;
 
 }
