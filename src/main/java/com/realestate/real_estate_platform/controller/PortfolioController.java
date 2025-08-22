@@ -45,25 +45,28 @@ public class PortfolioController {
     private JavaMailSender mailSender;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String createProperty(
-            @RequestPart("property") Portfolio portfolio,
-            @RequestPart(value = "images", required = false) MultipartFile[] images,
+    public String createPortfolio(
+            @RequestPart("portfolio") Portfolio portfolio,
+            @RequestPart(value = "dp", required = false) MultipartFile dp,
+            @RequestPart(value = "workimages", required = false) MultipartFile[] images,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         User user = userRepository.findByEmail(userDetails.getUsername()).orElseThrow();
         portfolio.setOwner(user);
-        portfolioService.createProperty(portfolio, images);
-        return "Property posted successfully";
+
+        portfolioService.createPortfolio(portfolio, dp, images);
+
+        return "Portfolio posted successfully";
     }
 
-    @PostMapping
-    public ResponseEntity<Portfolio> createPortfolio(
-            @RequestBody PortfolioDTO dto,
-            Principal principal
-    ) {
-        Portfolio portfolio = portfolioService.createPortfolio(dto, principal.getName());
-        return ResponseEntity.ok(portfolio);
-    }
+//    @PostMapping
+//    public ResponseEntity<Portfolio> createPortfolio(
+//            @RequestBody PortfolioDTO dto,
+//            Principal principal
+//    ) {
+//        Portfolio portfolio = portfolioService.createPortfolio(dto, principal.getName());
+//        return ResponseEntity.ok(portfolio);
+//    }
 
     @GetMapping("/my")
     public ResponseEntity<List<Portfolio>> getMyPortfolios(Principal principal) {

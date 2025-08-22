@@ -26,6 +26,8 @@ public class Portfolio {
     private Boolean isPublic = false; // Rename this
 
 
+    private String dp;
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "owner_id")
@@ -36,7 +38,6 @@ public class Portfolio {
     @Column(name = "image_url")
     private List<String> workimages = new ArrayList<>();
 
-    @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL)
-    private List<PortfolioWork> works = new ArrayList<>();
+
 }
 

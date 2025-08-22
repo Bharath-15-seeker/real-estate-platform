@@ -29,26 +29,37 @@ public class PortfolioService {
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-    public void createProperty(Portfolio property, MultipartFile[] images) {
-       //property.setPostedAt(LocalDateTime.now());
-
+    public void createPortfolio(Portfolio portfolio, MultipartFile dp, MultipartFile[] images) {
         List<String> imagePaths = new ArrayList<>();
 
-        if (images != null) {
-            // Ensure upload directory exists
-            File uploadPath = new File(uploadDir);
-            if (!uploadPath.exists()) {
-                uploadPath.mkdirs();
-            }
+        // Ensure upload directory exists
+        File uploadPath = new File(uploadDir);
+        if (!uploadPath.exists()) {
+            uploadPath.mkdirs();
+        }
 
+        // ✅ Save Display Picture (if provided)
+        if (dp != null && !dp.isEmpty()) {
+            try {
+                String filename = UUID.randomUUID() + "_" + dp.getOriginalFilename();
+                File destinationFile = new File(uploadPath, filename);
+                dp.transferTo(destinationFile);
+
+                // Store relative path for frontend
+                portfolio.setDp("/uploads/" + filename);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // ✅ Save multiple work images
+        if (images != null) {
             for (MultipartFile image : images) {
                 try {
                     String filename = UUID.randomUUID() + "_" + image.getOriginalFilename();
                     File destinationFile = new File(uploadPath, filename);
-
                     image.transferTo(destinationFile);
 
-                    // Store relative path (for frontend access)
                     imagePaths.add("/uploads/" + filename);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -56,23 +67,23 @@ public class PortfolioService {
             }
         }
 
-        property.setWorkimages(imagePaths);
-        portfolioRepo.save(property);
+        portfolio.setWorkimages(imagePaths);
+        portfolioRepo.save(portfolio);
     }
 
-    public Portfolio createPortfolio(PortfolioDTO dto, String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        Portfolio portfolio = new Portfolio();
-        portfolio.setTitle(dto.getTitle());
-        portfolio.setDescription(dto.getDescription());
-        portfolio.setCategory(dto.getCategory());
-        portfolio.setIsPublic(dto.isPublic());
-        portfolio.setOwner(user);
-
-        return portfolioRepo.save(portfolio);
-    }
+//    public Portfolio createPortfolio(PortfolioDTO dto, String email) {
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+//
+//        Portfolio portfolio = new Portfolio();
+//        portfolio.setTitle(dto.getTitle());
+//        portfolio.setDescription(dto.getDescription());
+//        portfolio.setCategory(dto.getCategory());
+//        portfolio.setIsPublic(dto.isPublic());
+//        portfolio.setOwner(user);
+//
+//        return portfolioRepo.save(portfolio);
+//    }
 
     public List<Portfolio> getPublicPortfolios() {
         return portfolioRepo.findByIsPublicTrue();
