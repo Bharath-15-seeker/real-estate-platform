@@ -106,17 +106,7 @@ public class ContactController {
     }
 
 
-    // 📨 User sends a contact request for a property
-//    @PostMapping("/{propertyId}")
-//    public ResponseEntity<Contact> contactPropertyOwner(@PathVariable Long propertyId,
-//                                                        @RequestBody Contact contactRequest) {
-//        Property property = propertyRepository.findById(propertyId)
-//                .orElseThrow(() -> new RuntimeException("Property not found"));
-//
-//        contactRequest.setProperty(property);
-//        Contact saved = contactRepository.save(contactRequest);
-//        return ResponseEntity.ok(saved);
-//    }
+
 
     @GetMapping("/received")
    // @PreAuthorize("hasAuthority('SELLER')")  // Optional: restrict to sellers

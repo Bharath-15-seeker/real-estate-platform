@@ -71,19 +71,7 @@ public class PortfolioService {
         portfolioRepo.save(portfolio);
     }
 
-//    public Portfolio createPortfolio(PortfolioDTO dto, String email) {
-//        User user = userRepository.findByEmail(email)
-//                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-//
-//        Portfolio portfolio = new Portfolio();
-//        portfolio.setTitle(dto.getTitle());
-//        portfolio.setDescription(dto.getDescription());
-//        portfolio.setCategory(dto.getCategory());
-//        portfolio.setIsPublic(dto.isPublic());
-//        portfolio.setOwner(user);
-//
-//        return portfolioRepo.save(portfolio);
-//    }
+
 
     public List<Portfolio> getPublicPortfolios() {
         return portfolioRepo.findByIsPublicTrue();

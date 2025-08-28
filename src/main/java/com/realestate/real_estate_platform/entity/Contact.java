@@ -24,8 +24,9 @@ public class Contact {
     private String message;
 
     @ManyToOne
-    @JoinColumn(name = "property_id", nullable = false)
     @JsonIgnore
+    @JoinColumn(name = "property_id", nullable = false)
+
     private Property property;
 
 }

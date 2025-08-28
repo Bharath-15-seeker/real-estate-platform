@@ -4,7 +4,6 @@ import com.realestate.real_estate_platform.dto.PropertyDTO;
 import com.realestate.real_estate_platform.entity.Property;
 import com.realestate.real_estate_platform.entity.PropertyType;
 import com.realestate.real_estate_platform.entity.User;
-import com.realestate.real_estate_platform.service.PropertyImageService;
 import com.realestate.real_estate_platform.service.PropertyService;
 import com.realestate.real_estate_platform.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,20 +17,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/properties")
 @RequiredArgsConstructor
 public class PropertyController {
 
-    private final PropertyImageService imageService;
+    //private final PropertyImageService imageService;
     private final PropertyService propertyService;
     private final UserRepository userRepository;
 
@@ -91,12 +85,12 @@ public class PropertyController {
         return ResponseEntity.ok(propertyService.getPropertiesByOwner(email));
     }
 
-    @PostMapping("/{propertyId}/images")
-    public ResponseEntity<String> uploadImage(@PathVariable Long propertyId,
-                                              @RequestParam("file") MultipartFile file) throws IOException {
-        String message = imageService.uploadImage(propertyId, file);
-        return ResponseEntity.ok(message);
-    }
+//    @PostMapping("/{propertyId}/images")
+//    public ResponseEntity<String> uploadImage(@PathVariable Long propertyId,
+//                                              @RequestParam("file") MultipartFile file) throws IOException {
+//        String message = imageService.uploadImage(propertyId, file);
+//        return ResponseEntity.ok(message);
+//    }
 
     @PutMapping("/{propertyId}")
     public ResponseEntity<Property> updateProperty(@PathVariable Long propertyId,

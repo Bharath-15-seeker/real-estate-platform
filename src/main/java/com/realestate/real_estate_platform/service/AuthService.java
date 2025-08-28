@@ -24,22 +24,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-//    public AuthResponse register(RegisterRequest request) {
-//        if (userRepo.findByEmail(request.getEmail()).isPresent()) {
-//            throw new IllegalArgumentException("Email already in use");
-//        }
-//
-//        User user = User.builder()
-//                .name(request.getName())
-//                .email(request.getEmail())
-//                .password(passwordEncoder.encode(request.getPassword()))
-//                .role(request.getRole())
-//                .build();
-//
-//        userRepo.save(user);
-//        String jwt = jwtService.generateToken(user);
-//        return new AuthResponse(jwt);
-//    }
+
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepo.findByEmail(request.getEmail()).isPresent()) {

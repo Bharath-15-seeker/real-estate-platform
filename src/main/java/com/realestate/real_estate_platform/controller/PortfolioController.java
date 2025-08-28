@@ -59,14 +59,7 @@ public class PortfolioController {
         return "Portfolio posted successfully";
     }
 
-//    @PostMapping
-//    public ResponseEntity<Portfolio> createPortfolio(
-//            @RequestBody PortfolioDTO dto,
-//            Principal principal
-//    ) {
-//        Portfolio portfolio = portfolioService.createPortfolio(dto, principal.getName());
-//        return ResponseEntity.ok(portfolio);
-//    }
+
 
     @GetMapping("/my")
     public ResponseEntity<List<Portfolio>> getMyPortfolios(Principal principal) {
@@ -96,34 +89,8 @@ public class PortfolioController {
         return ResponseEntity.ok(portfolio);
     }
 
-//    @PostMapping("/{portfolioId}/contact")
-//    public ResponseEntity<PortfolioContact> contactPortfolioOwner(
-//            @PathVariable Long portfolioId,
-//            @RequestBody PortfolioContact contactRequest) {
-//
-//        Portfolio portfolio = portfolioRepo.findById(portfolioId)
-//                .orElseThrow(() -> new RuntimeException("Portfolio not found"));
-//
-//        contactRequest.setPortfolio(portfolio);
-//        PortfolioContact saved = portfolioContactRepository.save(contactRequest);
-//
-//        // Send email to portfolio owner
-//        String ownerEmail = portfolio.getOwner().getEmail();
-//        sendPortfolioContactEmail(ownerEmail, contactRequest);
-//
-//        return ResponseEntity.ok(saved);
-//    }
 
 
-    private void sendPortfolioContactEmail(String to, PortfolioContact contactRequest) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(to);
-        message.setSubject("New Inquiry for Your Portfolio");
-        message.setText("You have a new contact from: " + contactRequest.getName() +
-                "\nEmail: " + contactRequest.getEmail() +
-                "\nMessage: " + contactRequest.getMessage() +
-                "\nPhone: " + contactRequest.getPhone());
-        mailSender.send(message);
-    }
+
 
 }

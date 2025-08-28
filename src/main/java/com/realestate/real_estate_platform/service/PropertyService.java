@@ -113,7 +113,7 @@ public class PropertyService {
 //        return properties.stream().map(PropertyDTO::from).collect(Collectors.toList());
 //    }
 
-    public List<PropertyDTO> searchProperties(String location, String typeStr, Double minPrice, Double maxPrice,Integer bhk,String facing,String proptype) {
+    public List<PropertyDTO> searchProperties(String location, String typeStr, Double minPrice, Double maxPrice, Integer bhk, String facing, String proptype) {
         PropertyType type = null;
         if (typeStr != null && !typeStr.isBlank()) {
             try {
@@ -130,8 +130,10 @@ public class PropertyService {
                 throw new RuntimeException("Invalid property type: " + proptype);
             }
         }
-        List<Property> properties = propertyRepo.search(location, type, minPrice, maxPrice,bhk,facing,prop_type);
-        return properties.stream().map(PropertyDTO::from).collect(Collectors.toList());
+        return propertyRepo.search(location, type, minPrice, maxPrice, bhk, facing, prop_type)
+                .stream()
+                .map(PropertyDTO::from)  // convert to DTO
+                .toList();
     }
 
 

@@ -2,6 +2,7 @@ package com.realestate.real_estate_platform.entity;
 
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,6 +46,7 @@ public class Property {
 //    private List<PropertyImage> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     @JsonIgnoreProperties("property")
     private List<Review> reviews;
 
@@ -55,6 +57,7 @@ public class Property {
     @JsonIgnoreProperties("properties") // ignore the "properties" field inside owner
     private User owner;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Contact> contacts;
 
