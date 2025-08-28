@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Properties - PropertyHub</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <i class="fas fa-home"></i>
+                    PropertyHub
+                </a>
+            </div>
+            <div class="nav-menu">
+                <a href="properties.html" class="nav-link active">Browse Properties</a>
+                <a href="portfolios.html" class="nav-link">Browse Portfolios</a>
+                <div class="auth-buttons" id="authButtons">
+                    <a href="login.html" class="btn btn-outline">Login</a>
+                    <a href="register.html" class="btn btn-primary">Register</a>
+                </div>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
+                    <button class="btn btn-outline" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Properties Header -->
+    <div class="page-header">
+        <div class="container">
+            <h1>Browse Properties</h1>
+            <p>Find your perfect property from our extensive collection</p>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="search-section">
+        <div class="container">
+            <div class="search-form">
+                <div class="search-input-group">
+                    <input type="text" id="searchInput" placeholder="Search by title or location...">
+                    <button class="btn btn-primary" onclick="searchProperties()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                
+                <div class="filter-controls">
+                    <select id="sortBy">
+                        <option value="newest">Newest First</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="title">Title A-Z</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Properties Grid -->
+    <div class="container">
+        <div class="loading" id="propertiesLoading">
+            <i class="fas fa-spinner fa-spin"></i> Loading properties...
+        </div>
+        
+        <div class="properties-grid" id="propertiesGrid">
+            <!-- Properties will be loaded here -->
+        </div>
+        
+        <div class="pagination" id="pagination" style="display: none;">
+            <button class="btn btn-outline" id="prevPage" onclick="changePage(-1)">
+                <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <span class="page-info" id="pageInfo">Page 1 of 1</span>
+            <button class="btn btn-outline" id="nextPage" onclick="changePage(1)">
+                Next <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="message-container"></div>
+
+    <script src="script.js"></script>
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        let allProperties = [];
+        let filteredProperties = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavigation();
+            loadProperties();
+            
+            // Event listeners
+            document.getElementById('searchInput').addEventListener('input', searchProperties);
+            document.getElementById('sortBy').addEventListener('change', sortProperties);
+        });
+
+        async function loadProperties() {
+            const loadingElement = document.getElementById('propertiesLoading');
+            const propertiesGrid = document.getElementById('propertiesGrid');
+            
+            try {
+                const properties = await makeRequest('/properties', 'GET', null, false);
+                
+                loadingElement.style.display = 'none';
+                allProperties = properties;
+                filteredProperties = [...properties];
+                
+                if (properties.length === 0) {
+                    propertiesGrid.innerHTML = '<div class="empty-state">No properties found</div>';
+                    return;
+                }
+                
+                displayProperties();
+                
+            } catch (error) {
+                loadingElement.style.display = 'none';
+                propertiesGrid.innerHTML = '<div class="error-state">Failed to load properties</div>';
+                showMessage('Failed to load properties: ' + error.message, 'error');
+            }
+        }
+
+        function displayProperties() {
+            const propertiesGrid = document.getElementById('propertiesGrid');
+            const startIndex = (currentPage - 1) * 12;
+            const endIndex = startIndex + 12;
+            const pageProperties = filteredProperties.slice(startIndex, endIndex);
+            
+            propertiesGrid.innerHTML = pageProperties.map(property => `
+                <div class="property-card" onclick="viewProperty(${property.id})">
+                    <div class="property-images">
+                        ${property.images && property.images.length > 0 
+                            ? `<img src="${property.images[0]}" alt="${property.title}">`
+                            : '<div class="no-image"><i class="fas fa-image"></i></div>'
+                        }
+                    </div>
+                    <div class="property-content">
+                        <h3>${property.title}</h3>
+                        <p class="property-description">${property.description.substring(0, 100)}${property.description.length > 100 ? '...' : ''}</p>
+                        <div class="property-details">
+                            <span class="property-price">$${Number(property.price).toLocaleString()}</span>
+                            <span class="property-location"><i class="fas fa-map-marker-alt"></i> ${property.location}</span>
+                        </div>
+                        <div class="property-meta">
+                            <span class="property-date">Listed on ${new Date(property.createdAt || Date.now()).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            updatePagination();
+        }
+
+        function updatePagination() {
+            totalPages = Math.ceil(filteredProperties.length / 12);
+            const paginationElement = document.getElementById('pagination');
+            const pageInfo = document.getElementById('pageInfo');
+            const prevBtn = document.getElementById('prevPage');
+            const nextBtn = document.getElementById('nextPage');
+            
+            if (totalPages > 1) {
+                paginationElement.style.display = 'flex';
+                pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+                prevBtn.disabled = currentPage === 1;
+                nextBtn.disabled = currentPage === totalPages;
+            } else {
+                paginationElement.style.display = 'none';
+            }
+        }
+
+        function changePage(direction) {
+            const newPage = currentPage + direction;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                displayProperties();
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function searchProperties() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (searchTerm.trim() === '') {
+                filteredProperties = [...allProperties];
+            } else {
+                filteredProperties = allProperties.filter(property =>
+                    property.title.toLowerCase().includes(searchTerm) ||
+                    property.location.toLowerCase().includes(searchTerm) ||
+                    property.description.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            currentPage = 1;
+            displayProperties();
+        }
+
+        function sortProperties() {
+            const sortBy = document.getElementById('sortBy').value;
+            
+            filteredProperties.sort((a, b) => {
+                switch (sortBy) {
+                    case 'price-low':
+                        return a.price - b.price;
+                    case 'price-high':
+                        return b.price - a.price;
+                    case 'title':
+                        return a.title.localeCompare(b.title);
+                    case 'newest':
+                    default:
+                        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+                }
+            });
+            
+            currentPage = 1;
+            displayProperties();
+        }
+
+        function viewProperty(propertyId) {
+            window.location.href = `property-detail.html?id=${propertyId}`;
+        }
+    </script>
+</body>
+</html>

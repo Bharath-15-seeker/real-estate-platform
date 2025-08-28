@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Portfolios - PropertyHub</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <i class="fas fa-home"></i>
+                    PropertyHub
+                </a>
+            </div>
+            <div class="nav-menu">
+                <a href="properties.html" class="nav-link">Browse Properties</a>
+                <a href="portfolios.html" class="nav-link active">Browse Portfolios</a>
+                <div class="auth-buttons" id="authButtons">
+                    <a href="login.html" class="btn btn-outline">Login</a>
+                    <a href="register.html" class="btn btn-primary">Register</a>
+                </div>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
+                    <button class="btn btn-outline" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Portfolios Header -->
+    <div class="page-header">
+        <div class="container">
+            <h1>Browse Portfolios</h1>
+            <p>Connect with experienced real estate professionals</p>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="search-section">
+        <div class="container">
+            <div class="search-form">
+                <div class="search-input-group">
+                    <input type="text" id="searchInput" placeholder="Search by name or expertise...">
+                    <button class="btn btn-primary" onclick="searchPortfolios()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                
+                <div class="filter-controls">
+                    <select id="sortBy">
+                        <option value="experience">Most Experienced</option>
+                        <option value="name">Name A-Z</option>
+                        <option value="newest">Newest First</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portfolios Grid -->
+    <div class="container">
+        <div class="loading" id="portfoliosLoading">
+            <i class="fas fa-spinner fa-spin"></i> Loading portfolios...
+        </div>
+        
+        <div class="portfolios-grid" id="portfoliosGrid">
+            <!-- Portfolios will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="message-container"></div>
+
+    <script src="script.js"></script>
+    <script>
+        let allPortfolios = [];
+        let filteredPortfolios = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavigation();
+            loadPortfolios();
+            
+            // Event listeners
+            document.getElementById('searchInput').addEventListener('input', searchPortfolios);
+            document.getElementById('sortBy').addEventListener('change', sortPortfolios);
+        });
+
+        async function loadPortfolios() {
+            const loadingElement = document.getElementById('portfoliosLoading');
+            const portfoliosGrid = document.getElementById('portfoliosGrid');
+            
+            try {
+                const portfolios = await makeRequest('/portfolios', 'GET', null, false);
+                
+                loadingElement.style.display = 'none';
+                allPortfolios = portfolios;
+                filteredPortfolios = [...portfolios];
+                
+                if (portfolios.length === 0) {
+                    portfoliosGrid.innerHTML = '<div class="empty-state">No portfolios found</div>';
+                    return;
+                }
+                
+                displayPortfolios();
+                
+            } catch (error) {
+                loadingElement.style.display = 'none';
+                portfoliosGrid.innerHTML = '<div class="error-state">Failed to load portfolios</div>';
+                showMessage('Failed to load portfolios: ' + error.message, 'error');
+            }
+        }
+
+        function displayPortfolios() {
+            const portfoliosGrid = document.getElementById('portfoliosGrid');
+            
+            portfoliosGrid.innerHTML = filteredPortfolios.map(portfolio => `
+                <div class="portfolio-card" onclick="viewPortfolio(${portfolio.userId})">
+                    <div class="portfolio-header">
+                        <div class="portfolio-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="portfolio-info">
+                            <h3>${portfolio.name}</h3>
+                            <p class="portfolio-experience">
+                                <i class="fas fa-briefcase"></i>
+                                ${portfolio.experience} years experience
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="portfolio-content">
+                        <p class="portfolio-bio">${portfolio.bio ? portfolio.bio.substring(0, 150) + (portfolio.bio.length > 150 ? '...' : '') : 'No bio available'}</p>
+                        
+                        <div class="portfolio-stats">
+                            <div class="stat">
+                                <i class="fas fa-home"></i>
+                                <span>${portfolio.propertyCount || 0} Properties</span>
+                            </div>
+                        </div>
+                        
+                        <div class="portfolio-actions">
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); contactAgent(${portfolio.userId})">
+                                <i class="fas fa-envelope"></i> Contact
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchPortfolios() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (searchTerm.trim() === '') {
+                filteredPortfolios = [...allPortfolios];
+            } else {
+                filteredPortfolios = allPortfolios.filter(portfolio =>
+                    portfolio.name.toLowerCase().includes(searchTerm) ||
+                    (portfolio.bio && portfolio.bio.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            displayPortfolios();
+        }
+
+        function sortPortfolios() {
+            const sortBy = document.getElementById('sortBy').value;
+            
+            filteredPortfolios.sort((a, b) => {
+                switch (sortBy) {
+                    case 'experience':
+                        return (b.experience || 0) - (a.experience || 0);
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    case 'newest':
+                    default:
+                        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+                }
+            });
+            
+            displayPortfolios();
+        }
+
+        function viewPortfolio(userId) {
+            window.location.href = `portfolio-detail.html?id=${userId}`;
+        }
+
+        async function contactAgent(userId) {
+            const message = prompt('Enter your message:');
+            if (!message) return;
+            
+            try {
+                await makeRequest('/contact', 'POST', {
+                    recipientId: userId,
+                    message: message
+                });
+                
+                showMessage('Message sent successfully!', 'success');
+            } catch (error) {
+                showMessage('Failed to send message: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

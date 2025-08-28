@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - PropertyHub</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="auth-page">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <i class="fas fa-home"></i>
+                    PropertyHub
+                </a>
+            </div>
+            <div class="nav-menu">
+                <a href="properties.html" class="nav-link">Browse Properties</a>
+                <a href="portfolios.html" class="nav-link">Browse Portfolios</a>
+                <a href="login.html" class="btn btn-outline">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Register Form -->
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h2>Create Account</h2>
+                <p>Join PropertyHub today</p>
+            </div>
+            
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required>
+                    <span class="form-error" id="nameError"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                    <span class="form-error" id="emailError"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required minlength="6">
+                    <span class="form-error" id="passwordError"></span>
+                    <small class="form-help">Password must be at least 6 characters long</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    <span class="form-error" id="confirmPasswordError"></span>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full" id="registerBtn">
+                    <span class="btn-text">Create Account</span>
+                    <span class="btn-loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Creating account...
+                    </span>
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Already have an account? <a href="login.html">Sign in here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="message-container"></div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Redirect if already logged in
+            if (isAuthenticated()) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            const registerForm = document.getElementById('registerForm');
+            registerForm.addEventListener('submit', handleRegister);
+        });
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const registerBtn = document.getElementById('registerBtn');
+            const btnText = registerBtn.querySelector('.btn-text');
+            const btnLoading = registerBtn.querySelector('.btn-loading');
+            
+            // Clear previous errors
+            clearFormErrors();
+            
+            const formData = new FormData(event.target);
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirmPassword');
+            
+            // Validate password match
+            if (password !== confirmPassword) {
+                showFormError('confirmPasswordError', 'Passwords do not match');
+                return;
+            }
+            
+            // Show loading state
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-block';
+            registerBtn.disabled = true;
+            
+            try {
+                const userData = {
+                    name: formData.get('name'),
+                    email: formData.get('email'),
+                    password: password
+                };
+                
+                const response = await makeRequest('/auth/register', 'POST', userData, false);
+                
+                showMessage('Registration successful! Please login to continue.', 'success');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                
+            } catch (error) {
+                showMessage(error.message || 'Registration failed. Please try again.', 'error');
+            } finally {
+                // Reset button state
+                btnText.style.display = 'inline-block';
+                btnLoading.style.display = 'none';
+                registerBtn.disabled = false;
+            }
+        }
+
+        function clearFormErrors() {
+            const errorElements = document.querySelectorAll('.form-error');
+            errorElements.forEach(el => el.textContent = '');
+        }
+
+        function showFormError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.textContent = message;
+            }
+        }
+    </script>
+</body>
+</html>

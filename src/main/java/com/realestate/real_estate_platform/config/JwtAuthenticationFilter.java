@@ -28,25 +28,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String username;
-
         String path = request.getRequestURI();
 
-        // ✅ Skip JWT auth for static resources
-        if (path.startsWith("/uploads/")) {
+        // ✅ Skip JWT filter for login & register endpoints
+        if (path.startsWith("/api/auth/") || path.startsWith("/uploads/")) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7); // Remove "Bearer "
-        username = jwtService.extractUsername(jwt);
+        final String jwt = authHeader.substring(7); // Remove "Bearer "
+        final String username = jwtService.extractUsername(jwt);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -66,4 +63,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
 }

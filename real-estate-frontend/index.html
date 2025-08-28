@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Management - Home</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="index.html">
+                    <i class="fas fa-home"></i>
+                    PropertyHub
+                </a>
+            </div>
+            <div class="nav-menu">
+                <a href="properties.html" class="nav-link">Browse Properties</a>
+                <a href="portfolios.html" class="nav-link">Browse Portfolios</a>
+                <div class="auth-buttons" id="authButtons">
+                    <a href="login.html" class="btn btn-outline">Login</a>
+                    <a href="register.html" class="btn btn-primary">Register</a>
+                </div>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
+                    <button class="btn btn-outline" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>Find Your Perfect Property</h1>
+            <p>Discover amazing properties and connect with top real estate professionals</p>
+            <div class="hero-buttons">
+                <a href="properties.html" class="btn btn-primary btn-large">Browse Properties</a>
+                <a href="portfolios.html" class="btn btn-outline btn-large">View Portfolios</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2>Why Choose PropertyHub?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-search"></i>
+                    <h3>Easy Property Search</h3>
+                    <p>Find properties that match your criteria with our advanced search filters</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-users"></i>
+                    <h3>Professional Portfolios</h3>
+                    <p>Connect with experienced real estate professionals and view their portfolios</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-envelope"></i>
+                    <h3>Direct Contact</h3>
+                    <p>Contact property owners and agents directly through our platform</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="message-container"></div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavigation();
+        });
+    </script>
+</body>
+</html>
