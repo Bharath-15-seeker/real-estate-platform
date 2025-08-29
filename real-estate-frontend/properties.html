@@ -108,7 +108,7 @@
             const propertiesGrid = document.getElementById('propertiesGrid');
             
             try {
-                const properties = await makeRequest('/properties', 'GET', null, false);
+                const properties = await makeRequest('/properties/search', 'GET', null, false);
                 
                 loadingElement.style.display = 'none';
                 allProperties = properties;

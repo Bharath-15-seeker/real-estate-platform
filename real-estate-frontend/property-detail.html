@@ -72,7 +72,7 @@
             const detailElement = document.getElementById('propertyDetail');
             
             try {
-                const property = await makeRequest(`/properties/${propertyId}`, 'GET', null, false);
+                const property = await makeRequest(`/properties/${propertyId}`, 'GET', null, true);
                 
                 loadingElement.style.display = 'none';
                 detailElement.style.display = 'block';
@@ -87,26 +87,29 @@
                     </div>
 
                     <div class="property-images">
-                        ${property.images && property.images.length > 0 
-                            ? `
-                                <div class="image-gallery">
-                                    <div class="main-image">
-                                        <img src="${property.images[0]}" alt="${property.title}" id="mainImage">
-                                    </div>
-                                    ${property.images.length > 1 ? `
-                                        <div class="image-thumbnails">
-                                            ${property.images.map((image, index) => `
-                                                <img src="${image}" alt="Property image ${index + 1}" 
-                                                     onclick="changeMainImage('${image}')"
-                                                     ${index === 0 ? 'class="active"' : ''}>
-                                            `).join('')}
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            `
-                            : '<div class="no-images"><i class="fas fa-image"></i> No images available</div>'
-                        }
+    ${property.imageUrls && property.imageUrls.length > 0
+        ? `
+            <div class="image-gallery">
+                <div class="main-image">
+                    <img src="http://localhost:8081${property.imageUrls[0]}"
+                         alt="${property.propertyName}" id="mainImage">
+                </div>
+                ${property.imageUrls.length > 1 ? `
+                    <div class="image-thumbnails">
+                        ${property.imageUrls.map((image, index) => `
+                            <img src="http://localhost:8081${image}"
+                                 alt="Property image ${index + 1}"
+                                 onclick="changeMainImage('http://localhost:8081${image}')"
+                                 ${index === 0 ? 'class="active"' : ''}>
+                        `).join('')}
                     </div>
+                ` : ''}
+            </div>
+        `
+        : '<div class="no-images"><i class="fas fa-image"></i> No images available</div>'
+    }
+</div>
+
 
                     <div class="property-content">
                         <div class="property-description">

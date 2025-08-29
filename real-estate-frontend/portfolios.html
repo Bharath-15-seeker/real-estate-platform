@@ -95,7 +95,7 @@
             const portfoliosGrid = document.getElementById('portfoliosGrid');
             
             try {
-                const portfolios = await makeRequest('/portfolios', 'GET', null, false);
+                const portfolios = await makeRequest('/portfolio/search', 'GET', null, false);
                 
                 loadingElement.style.display = 'none';
                 allPortfolios = portfolios;
