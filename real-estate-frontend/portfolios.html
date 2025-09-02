@@ -116,42 +116,52 @@
         }
 
         function displayPortfolios() {
-            const portfoliosGrid = document.getElementById('portfoliosGrid');
-            
-            portfoliosGrid.innerHTML = filteredPortfolios.map(portfolio => `
-                <div class="portfolio-card" onclick="viewPortfolio(${portfolio.userId})">
-                    <div class="portfolio-header">
-                        <div class="portfolio-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="portfolio-info">
-                            <h3>${portfolio.name}</h3>
-                            <p class="portfolio-experience">
-                                <i class="fas fa-briefcase"></i>
-                                ${portfolio.experience} years experience
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div class="portfolio-content">
-                        <p class="portfolio-bio">${portfolio.bio ? portfolio.bio.substring(0, 150) + (portfolio.bio.length > 150 ? '...' : '') : 'No bio available'}</p>
-                        
-                        <div class="portfolio-stats">
-                            <div class="stat">
-                                <i class="fas fa-home"></i>
-                                <span>${portfolio.propertyCount || 0} Properties</span>
-                            </div>
-                        </div>
-                        
-                        <div class="portfolio-actions">
-                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); contactAgent(${portfolio.userId})">
-                                <i class="fas fa-envelope"></i> Contact
-                            </button>
-                        </div>
-                    </div>
+    const portfoliosGrid = document.getElementById('portfoliosGrid');
+
+    portfoliosGrid.innerHTML = filteredPortfolios.map(portfolio => `
+        <div class="portfolio-card" onclick="viewPortfolio(${portfolio.id})">
+            <div class="portfolio-header">
+                <div class="portfolio-avatar">
+                    ${portfolio.dp
+                        ? `<img src="${portfolio.dp}" alt="${portfolio.title}" class="avatar-img">`
+                        : `<i class="fas fa-user"></i>`
+                    }
                 </div>
-            `).join('');
-        }
+                <div class="portfolio-info">
+                    <h3>${portfolio.title || 'Untitled Portfolio'}</h3>
+                    <p class="portfolio-category">
+                        <i class="fas fa-briefcase"></i>
+                        ${portfolio.category || 'Uncategorized'}
+                    </p>
+                </div>
+            </div>
+
+            <div class="portfolio-content">
+                <p class="portfolio-description">
+                    ${portfolio.description
+                        ? portfolio.description.substring(0, 150) + (portfolio.description.length > 150 ? '...' : '')
+                        : 'No description available'}
+                </p>
+
+                <div class="portfolio-images">
+                    ${portfolio.workimages && portfolio.workimages.length > 0
+                        ? portfolio.workimages.slice(0, 3).map(img =>
+                            `<img src="${img}" alt="Work image" class="portfolio-thumb">`
+                        ).join('')
+                        : '<span class="no-images">No work images</span>'
+                    }
+                </div>
+
+                <div class="portfolio-actions">
+                    <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); viewPortfolio(${portfolio.id})">
+                        <i class="fas fa-eye"></i> View Details
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
 
         function searchPortfolios() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -168,27 +178,27 @@
             displayPortfolios();
         }
 
-        function sortPortfolios() {
-            const sortBy = document.getElementById('sortBy').value;
-            
-            filteredPortfolios.sort((a, b) => {
-                switch (sortBy) {
-                    case 'experience':
-                        return (b.experience || 0) - (a.experience || 0);
-                    case 'name':
-                        return a.name.localeCompare(b.name);
-                    case 'newest':
-                    default:
-                        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-                }
-            });
-            
-            displayPortfolios();
-        }
+        function searchPortfolios() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
-        function viewPortfolio(userId) {
-            window.location.href = `portfolio-detail.html?id=${userId}`;
-        }
+    if (searchTerm.trim() === '') {
+        filteredPortfolios = [...allPortfolios];
+    } else {
+        filteredPortfolios = allPortfolios.filter(portfolio =>
+            (portfolio.title && portfolio.title.toLowerCase().includes(searchTerm)) ||
+            (portfolio.description && portfolio.description.toLowerCase().includes(searchTerm)) ||
+            (portfolio.category && portfolio.category.toLowerCase().includes(searchTerm))
+        );
+    }
+
+    displayPortfolios();
+}
+
+
+        function viewPortfolio(portfolioId) {
+    window.location.href = `portfolio-detail.html?id=${portfolioId}`;
+}
+
 
         async function contactAgent(userId) {
             const message = prompt('Enter your message:');

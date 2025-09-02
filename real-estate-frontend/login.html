@@ -98,7 +98,7 @@
                 const response = await makeRequest('/auth/login', 'POST', credentials, false);
                 
                 if (response.token) {
-                    localStorage.setItem('jwt_token', data.token);
+                    localStorage.setItem('jwt_token', response.token);
                     showMessage('Login successful! Redirecting...', 'success');
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';

@@ -8,194 +8,151 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <a href="index.html">
-                    <i class="fas fa-home"></i>
-                    PropertyHub
-                </a>
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo">
+            <a href="index.html">
+                <i class="fas fa-home"></i>
+                PropertyHub
+            </a>
+        </div>
+        <div class="nav-menu">
+            <a href="properties.html" class="nav-link">Browse Properties</a>
+            <a href="portfolios.html" class="nav-link">Browse Portfolios</a>
+            <div class="auth-buttons" id="authButtons">
+                <a href="login.html" class="btn btn-outline">Login</a>
+                <a href="register.html" class="btn btn-primary">Register</a>
             </div>
-            <div class="nav-menu">
-                <a href="properties.html" class="nav-link">Browse Properties</a>
-                <a href="portfolios.html" class="nav-link">Browse Portfolios</a>
-                <div class="auth-buttons" id="authButtons">
-                    <a href="login.html" class="btn btn-outline">Login</a>
-                    <a href="register.html" class="btn btn-primary">Register</a>
-                </div>
-                <div class="user-menu" id="userMenu" style="display: none;">
-                    <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
-                    <button class="btn btn-outline" onclick="logout()">Logout</button>
-                </div>
+            <div class="user-menu" id="userMenu" style="display: none;">
+                <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
+                <button class="btn btn-outline" onclick="logout()">Logout</button>
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <!-- Portfolio Detail -->
-    <div class="container">
-        <div class="breadcrumb">
-            <a href="portfolios.html">Portfolios</a>
-            <span class="separator">></span>
-            <span class="current">Portfolio Details</span>
+<!-- Portfolio Detail -->
+<div class="container">
+    <div class="breadcrumb">
+        <a href="portfolios.html">Portfolios</a>
+        <span class="separator">></span>
+        <span class="current">Portfolio Details</span>
+    </div>
+
+    <div class="loading" id="portfolioLoading">
+        <i class="fas fa-spinner fa-spin"></i> Loading portfolio...
+    </div>
+
+    <div class="portfolio-detail" id="portfolioDetail" style="display: none;">
+        <!-- Portfolio details will be loaded here -->
+    </div>
+</div>
+
+<!-- Success/Error Messages -->
+<div id="messageContainer" class="message-container"></div>
+
+<script src="script.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const response = await fetch("http://localhost:8081/api/portfolio/1");
+        const data = await response.json();
+        console.log("Fetched:", data);
+
+        // just to see it on screentoo
+        document.getElementById("portfolioDetail").innerText = JSON.stringify(data, null, 2);
+      } catch (error) {
+        console.error("Error fetching portfolio:", error);
+      }
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        updateNavigation();
+        loadPortfolioDetail();
+    });
+
+    async function loadPortfolioDetail() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const portfolioId = urlParams.get('id');
+
+        if (!portfolioId) {
+            window.location.href = 'portfolios.html';
+            return;
+        }
+
+        const loadingElement = document.getElementById('portfolioLoading');
+        const detailElement = document.getElementById('portfolioDetail');
+
+        try {
+            const portfolio = await makeRequest(`/portfolio/${portfolioId}`, 'GET', null, true);
+
+            loadingElement.style.display = 'none';
+            detailElement.style.display = 'block';
+
+            detailElement.innerHTML = `
+    <div class="portfolio-header">
+        <div class="portfolio-avatar-large">
+            ${portfolio.dp
+                ? `<img src="${getImageUrl(portfolio.dp)}" alt="${portfolio.title}" class="portfolio-dp">`
+                : `<i class="fas fa-user"></i>`}
         </div>
-
-        <div class="loading" id="portfolioLoading">
-            <i class="fas fa-spinner fa-spin"></i> Loading portfolio...
-        </div>
-
-        <div class="portfolio-detail" id="portfolioDetail" style="display: none;">
-            <!-- Portfolio details will be loaded here -->
+        <div class="portfolio-info">
+            <h1>${portfolio.title}</h1>
+            <div class="portfolio-stats">
+                <span class="stat">
+                    <i class="fas fa-tags"></i>
+                    ${portfolio.category || 'Uncategorized'}
+                </span>
+            </div>
         </div>
     </div>
 
-    <!-- Success/Error Messages -->
-    <div id="messageContainer" class="message-container"></div>
+    <div class="portfolio-content">
+        ${portfolio.description ? `
+            <div class="portfolio-bio">
+                <h2>Description</h2>
+                <p>${portfolio.description}</p>
+            </div>
+        ` : ''}
 
-    <script src="script.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            updateNavigation();
-            loadPortfolioDetail();
-        });
-
-        async function loadPortfolioDetail() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get('id');
-            
-            if (!userId) {
-                window.location.href = 'portfolios.html';
-                return;
-            }
-
-            const loadingElement = document.getElementById('portfolioLoading');
-            const detailElement = document.getElementById('portfolioDetail');
-            
-            try {
-                const [portfolio, properties] = await Promise.all([
-                    makeRequest(`/portfolio/${userId}`, 'GET', null, false),
-                    makeRequest(`/properties/user/${userId}`, 'GET', null, false)
-                ]);
-                
-                loadingElement.style.display = 'none';
-                detailElement.style.display = 'block';
-                
-                detailElement.innerHTML = `
-                    <div class="portfolio-header">
-                        <div class="portfolio-avatar-large">
-                            <i class="fas fa-user"></i>
+        ${portfolio.workimages && portfolio.workimages.length > 0 ? `
+            <div class="portfolio-work">
+                <h2>Work Images</h2>
+                <div class="work-images-grid">
+                    ${portfolio.workimages.map(img => `
+                        <div class="work-image">
+                            <img src="${getImageUrl(img)}" alt="Work image">
                         </div>
-                        <div class="portfolio-info">
-                            <h1>${portfolio.name}</h1>
-                            <div class="portfolio-stats">
-                                <span class="stat">
-                                    <i class="fas fa-briefcase"></i>
-                                    ${portfolio.experience} years experience
-                                </span>
-                                <span class="stat">
-                                    <i class="fas fa-home"></i>
-                                    ${properties.length} properties
-                                </span>
-                            </div>
-                        </div>
-                        <div class="portfolio-actions">
-                            <button class="btn btn-primary" onclick="contactAgent(${userId})">
-                                <i class="fas fa-envelope"></i> Contact Agent
-                            </button>
-                        </div>
-                    </div>
+                    `).join('')}
+                </div>
+            </div>
+        ` : '<p class="empty-state">No work images uploaded.</p>'}
+    </div>
 
-                    <div class="portfolio-content">
-                        ${portfolio.bio ? `
-                            <div class="portfolio-bio">
-                                <h2>About</h2>
-                                <p>${portfolio.bio}</p>
-                            </div>
-                        ` : ''}
 
-                        ${portfolio.contactInfo ? `
-                            <div class="portfolio-contact">
-                                <h2>Contact Information</h2>
-                                <div class="contact-info">
-                                    ${portfolio.contactInfo.split('\\n').map(line => `<p>${line}</p>`).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
+                <div class="back-button">
+                    <button class="btn btn-outline" onclick="window.history.back()">
+                        <i class="fas fa-arrow-left"></i> Back to Portfolios
+                    </button>
+                </div>
+            `;
 
-                        <div class="portfolio-properties">
-                            <h2>Properties (${properties.length})</h2>
-                            ${properties.length > 0 ? `
-                                <div class="properties-grid">
-                                    ${properties.map(property => `
-                                        <div class="property-card" onclick="viewProperty(${property.id})">
-                                            <div class="property-images">
-                                                ${property.images && property.images.length > 0 
-                                                    ? `<img src="${property.images[0]}" alt="${property.title}">`
-                                                    : '<div class="no-image"><i class="fas fa-image"></i></div>'
-                                                }
-                                            </div>
-                                            <div class="property-content">
-                                                <h3>${property.title}</h3>
-                                                <p class="property-description">${property.description.substring(0, 100)}${property.description.length > 100 ? '...' : ''}</p>
-                                                <div class="property-details">
-                                                    <span class="property-price">$${Number(property.price).toLocaleString()}</span>
-                                                    <span class="property-location"><i class="fas fa-map-marker-alt"></i> ${property.location}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            ` : '<p class="empty-state">No properties listed yet.</p>'}
-                        </div>
-                    </div>
-
-                    <div class="back-button">
-                        <button class="btn btn-outline" onclick="window.history.back()">
-                            <i class="fas fa-arrow-left"></i> Back to Portfolios
-                        </button>
-                    </div>
-                `;
-                
-            } catch (error) {
-                loadingElement.style.display = 'none';
-                detailElement.style.display = 'block';
-                detailElement.innerHTML = `
-                    <div class="error-state">
-                        <h2>Portfolio Not Found</h2>
-                        <p>The portfolio you're looking for doesn't exist or has been removed.</p>
-                        <a href="portfolios.html" class="btn btn-primary">Back to Portfolios</a>
-                    </div>
-                `;
-            }
+        } catch (error) {
+            loadingElement.style.display = 'none';
+            detailElement.style.display = 'block';
+            detailElement.innerHTML = `
+                <div class="error-state">
+                    <h2>Portfolio Not Found</h2>
+                    <p>The portfolio you're looking for doesn't exist or has been removed.</p>
+                    <a href="portfolios.html" class="btn btn-primary">Back to Portfolios</a>
+                </div>
+            `;
         }
-
-        function viewProperty(propertyId) {
-            window.location.href = `property-detail.html?id=${propertyId}`;
-        }
-
-        async function contactAgent(userId) {
-            if (!isAuthenticated()) {
-                showMessage('Please login to contact the agent.', 'error');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
-                return;
-            }
-
-            const message = prompt('Enter your message to the agent:');
-            if (!message) return;
-            
-            try {
-                await makeRequest('/contact', 'POST', {
-                    recipientId: userId,
-                    message: message
-                });
-                
-                showMessage('Message sent successfully!', 'success');
-            } catch (error) {
-                showMessage('Failed to send message: ' + error.message, 'error');
-            }
-        }
-    </script>
+    }
+</script>
 </body>
 </html>

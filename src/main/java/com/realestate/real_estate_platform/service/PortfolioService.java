@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -112,5 +113,9 @@ public class PortfolioService {
 
 
             return portfolioRepo.save(portfolio);
+    }
+
+    public Optional<Portfolio> getbypropertyId(Long id) {
+        return portfolioRepo.findById(id);
     }
 }

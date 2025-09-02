@@ -227,7 +227,7 @@
             const propertiesContainer = document.getElementById('userProperties');
             
             try {
-                const properties = await makeRequest('/properties/user', 'GET');
+                const properties = await makeRequest('/properties/my-properties', 'GET');
                 
                 loadingElement.style.display = 'none';
                 

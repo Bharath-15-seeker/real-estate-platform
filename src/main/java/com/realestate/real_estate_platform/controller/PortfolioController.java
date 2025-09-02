@@ -60,6 +60,12 @@ public class PortfolioController {
     }
 
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Optional<Portfolio>> searchbyid(@PathVariable Long id)
+    {
+        return ResponseEntity.ok(portfolioService.getbypropertyId(id));
+    }
+
 
     @GetMapping("/my")
     public ResponseEntity<List<Portfolio>> getMyPortfolios(Principal principal) {
