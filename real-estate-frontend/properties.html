@@ -135,27 +135,35 @@
             const pageProperties = filteredProperties.slice(startIndex, endIndex);
             
             propertiesGrid.innerHTML = pageProperties.map(property => `
-                <div class="property-card" onclick="viewProperty(${property.id})">
-                    <div class="property-images">
-                        ${property.images && property.images.length > 0 
-                            ? `<img src="${property.images[0]}" alt="${property.title}">`
-                            : '<div class="no-image"><i class="fas fa-image"></i></div>'
-                        }
-                    </div>
-                    <div class="property-content">
-                        <h3>${property.title}</h3>
-                        <p class="property-description">${property.description.substring(0, 100)}${property.description.length > 100 ? '...' : ''}</p>
-                        <div class="property-details">
-                            <span class="property-price">$${Number(property.price).toLocaleString()}</span>
-                            <span class="property-location"><i class="fas fa-map-marker-alt"></i> ${property.location}</span>
-                        </div>
-                        <div class="property-meta">
-                            <span class="property-date">Listed on ${new Date(property.createdAt || Date.now()).toLocaleDateString()}</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            
+    <div class="property-card" onclick="viewProperty(${property.id})">
+        <div class="property-images">
+            ${property.images && property.images.length > 0
+                ? `<img src="${property.images[0]}" alt="${property.title}">`
+                : '<div class="no-image"><i class="fas fa-image"></i></div>'
+            }
+        </div>
+        <div class="property-content">
+            <h3>${property.title}</h3>
+            <p class="property-description">${property.description.substring(0, 100)}${property.description.length > 100 ? '...' : ''}</p>
+
+            <div class="property-details">
+                <span class="property-price">${Number(property.price).toLocaleString()}</span>
+                <span class="property-location"><i class="fas fa-map-marker-alt"></i> ${property.location}</span>
+            </div>
+
+            <!-- ✅ New quick meta info -->
+            <div class="property-meta">
+                <span><strong>${property.bhk || '-'} BHK</strong></span>
+                <span>${property.sqft ? property.sqft + ' sqft' : '-'}</span>
+                <span>${property.type || '-'}</span>
+            </div>
+
+            <div class="property-date">
+                <small>Listed on ${new Date(property.createdAt || Date.now()).toLocaleDateString()}</small>
+            </div>
+        </div>
+    </div>
+`).join('');
             updatePagination();
         }
 

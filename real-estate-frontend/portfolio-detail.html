@@ -54,20 +54,6 @@
 
 <script src="script.js"></script>
 
-<script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        const response = await fetch("http://localhost:8081/api/portfolio/1");
-        const data = await response.json();
-        console.log("Fetched:", data);
-
-        // just to see it on screentoo
-        document.getElementById("portfolioDetail").innerText = JSON.stringify(data, null, 2);
-      } catch (error) {
-        console.error("Error fetching portfolio:", error);
-      }
-    });
-</script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -88,7 +74,8 @@
         const detailElement = document.getElementById('portfolioDetail');
 
         try {
-            const portfolio = await makeRequest(`/portfolio/${portfolioId}`, 'GET', null, true);
+
+           const portfolio = await makeRequest(`/portfolio/${portfolioId}`, 'GET', null, true);
 
             loadingElement.style.display = 'none';
             detailElement.style.display = 'block';
@@ -152,6 +139,8 @@
                 </div>
             `;
         }
+        console.log("Portfolio ID from URL:", portfolioId);
+
     }
 </script>
 </body>

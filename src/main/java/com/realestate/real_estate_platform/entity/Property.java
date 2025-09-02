@@ -26,6 +26,8 @@ public class Property {
     private String location;
     private int bhk;
 
+    private String title;
+
     private String facing;
     private String Address;
     private Double sqft;

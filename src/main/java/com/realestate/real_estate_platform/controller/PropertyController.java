@@ -30,7 +30,8 @@ public class PropertyController {
     private final UserRepository userRepository;
 
     // 🔼 Post a new property (only for authenticated users)
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE })
+
     public String createProperty(
             @RequestPart("property") Property property,
             @RequestPart(value = "images", required = false) MultipartFile[] images,
@@ -58,6 +59,7 @@ public class PropertyController {
     @GetMapping("/search")
     public ResponseEntity<List<PropertyDTO>> searchProperties(
             @RequestParam(required = false) String location,
+            @RequestParam(required = false) String title,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
@@ -66,7 +68,7 @@ public class PropertyController {
             @RequestParam(required = false) String prop_type
 
     ) {
-        List<PropertyDTO> results = propertyService.searchProperties(location, type, minPrice, maxPrice,bhk,facing, prop_type);
+        List<PropertyDTO> results = propertyService.searchProperties(location,title , type, minPrice, maxPrice,bhk,facing, prop_type);
         return ResponseEntity.ok(results);
     }
 

@@ -44,80 +44,61 @@ function updateNavigation() {
 }
 
 // HTTP Request Function
-async function makeRequest(endpoint, method = 'GET', data = null, requireAuth = true) {
+async function makeRequest(endpoint, method = 'GET', data = null, requireAuth = true, isMultipart = false) {
     const url = `${API_BASE_URL}${endpoint}`;
-    
-    const options = {
-        method,
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    };
-    
-    // Add authentication header if required and available
+
+    const options = { method, headers: {} };
+
+    // Add auth header if needed
     if (requireAuth && isAuthenticated()) {
         options.headers['Authorization'] = `Bearer ${getAuthToken()}`;
     }
-    
-    // Add request body for POST/PUT requests
+
+    // Handle body
     if (data && (method === 'POST' || method === 'PUT')) {
-        options.body = JSON.stringify(data);
+        if (isMultipart) {
+            // ✅ Don't set Content-Type manually (browser will do it)
+            options.body = data;
+        } else {
+            options.headers['Content-Type'] = 'application/json';
+            options.body = JSON.stringify(data);
+        }
     }
-    
+
     try {
         const response = await fetch(url, options);
-        
-        // Handle different response types
+
         if (!response.ok) {
             if (response.status === 401) {
-                // Token expired or invalid
                 localStorage.removeItem('jwt_token');
                 showMessage('Session expired. Please login again.', 'error');
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
+                setTimeout(() => { window.location.href = 'login.html'; }, 2000);
                 throw new Error('Unauthorized');
             }
-            
-            // Try to get error message from response
+
             let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
             try {
                 const errorData = await response.json();
                 errorMessage = errorData.message || errorData.error || errorMessage;
-            } catch (e) {
-                // Response is not JSON, use default message
-            }
-            
+            } catch (e) {}
             throw new Error(errorMessage);
         }
-        
-        // Handle empty responses (like DELETE requests)
+
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             return null;
         }
-        
+
         return await response.json();
-        
     } catch (error) {
-        if (error.message === 'Unauthorized') {
-            throw error; // Re-throw auth errors
-        }
-        
-        // Network or other errors
         console.error('Request failed:', error);
-        
         if (!navigator.onLine) {
-            throw new Error('No internet connection. Please check your network.');
+            throw new Error('No internet connection.');
         }
-        
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            throw new Error('Unable to connect to server. Please try again later.');
-        }
-        
         throw error;
     }
 }
+
 
 // Message Display Functions
 function showMessage(message, type = 'info') {

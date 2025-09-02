@@ -120,16 +120,32 @@
                         <div class="property-details">
                             <h2>Property Details</h2>
                             <div class="details-grid">
-                                <div class="detail-item">
-                                    <strong>Price:</strong> $${Number(property.price).toLocaleString()}
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Location:</strong> ${property.location}
-                                </div>
-                                <div class="detail-item">
-                                    <strong>Listed on:</strong> ${new Date(property.createdAt || Date.now()).toLocaleDateString()}
-                                </div>
-                            </div>
+    <div class="detail-item">
+        <strong>Price:</strong> ${Number(property.price).toLocaleString()}
+    </div>
+    <div class="detail-item">
+        <strong>Location:</strong> ${property.location}
+    </div>
+    <div class="detail-item">
+        <strong>BHK:</strong> ${property.bhk || '-'}
+    </div>
+    <div class="detail-item">
+        <strong>Facing:</strong> ${property.facing || '-'}
+    </div>
+    <div class="detail-item">
+        <strong>Property Type:</strong> ${property.prop_type || '-'}
+    </div>
+    <div class="detail-item">
+        <strong>Sqft:</strong> ${property.sqft ? property.sqft + ' sqft' : '-'}
+    </div>
+    <div class="detail-item">
+        <strong>Sale/Rent:</strong> ${property.type || '-'}
+    </div>
+    <div class="detail-item">
+        <strong>Listed on:</strong> ${new Date(property.createdAt || Date.now()).toLocaleDateString()}
+    </div>
+</div>
+
                         </div>
 
                         <div class="property-actions">

@@ -18,6 +18,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
 
     @Query("SELECT p FROM Property p WHERE "
             + "(:location IS NULL OR p.location = :location) AND "
+            + "(:title IS NULL OR p.title = :title) AND "
             + "(:type IS NULL OR p.type = :type) AND "
             + "(:minPrice IS NULL OR p.price >= :minPrice) AND "
             + "(:maxPrice IS NULL OR p.price <= :maxPrice) AND "
@@ -25,6 +26,7 @@ public interface PropertyRepository extends JpaRepository<Property, Long> {
             + "(:facing IS NULL OR p.facing = :facing) AND "
             + "(:propType IS NULL OR p.prop_type = :propType)")
     List<Property> search(@Param("location") String location,
+                          @Param("title") String title,
                           @Param("type") PropertyType type,
                           @Param("minPrice") Double minPrice,
                           @Param("maxPrice") Double maxPrice,

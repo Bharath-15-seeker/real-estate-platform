@@ -99,41 +99,90 @@
             <div class="section-header">
                 <h2>Add New Property</h2>
             </div>
-            
+
             <form id="propertyForm" class="property-form">
                 <div class="form-group">
                     <label for="title">Property Title</label>
                     <input type="text" id="title" name="title" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="description">Description</label>
                     <textarea id="description" name="description" rows="4" required></textarea>
                 </div>
-                
+
+                <div class="form-group">
+                    <label for="Address">Address</label>
+                    <textarea id="Address" name="Address" rows="4" required></textarea>
+                </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="price">Price ($)</label>
                         <input type="number" id="price" name="price" min="0" step="0.01" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="location">Location</label>
                         <input type="text" id="location" name="location" required>
                     </div>
                 </div>
-                
+
+                <!-- ✅ Extra fields -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bhk">BHK</label>
+                        <input type="number" id="bhk" name="bhk" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="facing">Facing</label>
+                        <select id="facing" name="facing" required>
+                            <option value="EAST">East</option>
+                            <option value="WEST">West</option>
+                            <option value="NORTH">North</option>
+                            <option value="SOUTH">South</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="prop_type">Property Type</label>
+                        <select id="prop_type" name="prop_type" required>
+                            <option value="GATEDCOMMUNITYVILLA">Gated Community Villa</option>
+                            <option value="APARTMENT">Apartment</option>
+                            <option value="STANDALONEBUILDING">Standalone Building</option>
+                            <option value="INDEPENDENTHOUSE">Independent House</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sqft">Square Feet</label>
+                        <input type="number" id="sqft" name="sqft" min="0" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="type">Listing Type</label>
+                    <select id="type" name="type" required>
+                        <option value="RENT">Rent</option>
+                        <option value="SALE">Sale</option>
+                    </select>
+                </div>
+                <!-- ✅ End extra fields -->
+
                 <div class="form-group">
                     <label for="images">Property Images</label>
                     <input type="file" id="images" name="images" multiple accept="image/*">
                     <small class="form-help">Select multiple images (max 10MB each)</small>
                 </div>
-                
+
                 <button type="submit" class="btn btn-primary">
                     <span class="btn-text">Add Property</span>
                     <span class="btn-loading" style="display: none;">
-                        <i class="fas fa-spinner fa-spin"></i> Adding property...
-                    </span>
+                <i class="fas fa-spinner fa-spin"></i> Adding property...
+            </span>
                 </button>
             </form>
         </div>
@@ -272,10 +321,10 @@
 
         async function loadUserPortfolio() {
             try {
-                const portfolio = await makeRequest('/portfolio', 'GET');
+                const portfolio = await makeRequest('/portfolio/my', 'GET');
                 
                 if (portfolio) {
-                    document.getElementById('portfolioName').value = portfolio.name || '';
+                    document.getElementById('title').value = portfolio.title || '';
                     document.getElementById('bio').value = portfolio.bio || '';
                     document.getElementById('experience').value = portfolio.experience || '';
                     document.getElementById('contactInfo').value = portfolio.contactInfo || '';
@@ -285,46 +334,60 @@
                 console.log('No existing portfolio found');
             }
         }
-
         async function handleAddProperty(event) {
-            event.preventDefault();
-            
-            const submitBtn = event.target.querySelector('button[type="submit"]');
-            const btnText = submitBtn.querySelector('.btn-text');
-            const btnLoading = submitBtn.querySelector('.btn-loading');
-            
-            btnText.style.display = 'none';
-            btnLoading.style.display = 'inline-block';
-            submitBtn.disabled = true;
-            
-            try {
-                const formData = new FormData(event.target);
-                
-                const propertyData = {
-                    title: formData.get('title'),
-                    description: formData.get('description'),
-                    price: parseFloat(formData.get('price')),
-                    location: formData.get('location'),
-                    images: [] // Images would need special handling
-                };
-                
-                await makeRequest('/properties', 'POST', propertyData);
-                
-                showMessage('Property added successfully!', 'success');
-                event.target.reset();
-                loadUserProperties();
-                switchTab('properties');
-                
-            } catch (error) {
-                showMessage('Failed to add property: ' + error.message, 'error');
-            } finally {
-                btnText.style.display = 'inline-block';
-                btnLoading.style.display = 'none';
-                submitBtn.disabled = false;
-            }
+    event.preventDefault();
+
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoading = submitBtn.querySelector('.btn-loading');
+
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'inline-block';
+    submitBtn.disabled = true;
+
+    try {
+        const form = event.target;
+        const formData = new FormData();
+
+        // Property object as JSON blob
+        const property = {
+            title: form.title.value,
+            address: form.Address.value,
+            description: form.description.value,
+            price: parseFloat(form.price.value),
+            location: form.location.value,
+            bhk: parseInt(form.bhk.value),
+            facing: form.facing.value,
+            prop_type: form.prop_type.value,
+            sqft: parseInt(form.sqft.value),
+            type: form.type.value
+        };
+
+        formData.append("property", new Blob([JSON.stringify(property)], { type: "application/json" }));
+
+        // Append images
+        const files = form.images.files;
+        for (let i = 0; i < files.length; i++) {
+            formData.append("images", files[i]);
         }
 
-        async function handleSavePortfolio(event) {
+        await makeRequest('/properties', 'POST', formData, true, true); // ✅ use multipart
+
+        showMessage('Property added successfully!', 'success');
+        form.reset();
+        loadUserProperties();
+        switchTab('properties');
+
+    } catch (error) {
+        showMessage('Failed to add property: ' + error.message, 'error');
+    } finally {
+        btnText.style.display = 'inline-block';
+        btnLoading.style.display = 'none';
+        submitBtn.disabled = false;
+    }
+}
+
+           async function handleSavePortfolio(event) {
             event.preventDefault();
             
             const submitBtn = event.target.querySelector('button[type="submit"]');
