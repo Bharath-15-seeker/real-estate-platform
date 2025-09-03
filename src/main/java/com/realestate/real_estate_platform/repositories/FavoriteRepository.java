@@ -14,12 +14,12 @@ import java.util.Optional;
 public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
     List<Favorite> findByUserEmail(String email);
     boolean existsByUserAndProperty(User user, Property property);
-    void deleteByUserAndProperty(User user, Property property);
+    long deleteByUserAndProperty(User user, Property property);
     Optional<Favorite> findByUserAndProperty(User user, Property property);
 
     List<Favorite> findByUser(User user);
 
-    void deleteByUserAndPortfolio(User user, Portfolio portfolio);
+    long deleteByUserAndPortfolio(User user, Portfolio portfolio);
 
     List<Favorite> findByUserId(Long userId);
 

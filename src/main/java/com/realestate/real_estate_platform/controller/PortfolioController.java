@@ -63,7 +63,7 @@ public class PortfolioController {
     @GetMapping("/{id}")
     public ResponseEntity<Optional<Portfolio>> searchbyid(@PathVariable Long id)
     {
-        return ResponseEntity.ok(portfolioService.getbypropertyId(id));
+        return ResponseEntity.ok(portfolioService.getbyportfolioId(id));
     }
 
 

@@ -30,15 +30,11 @@ public class FavoriteController {
         return ResponseEntity.ok("Added to favorites");
     }
 
-    @DeleteMapping("/portfolio/{id}")
-    public ResponseEntity<String> removeportFavorite(@PathVariable Long id, Authentication auth) {
-        favoriteService.removeportFavorites(auth.getName(), id);
-        return ResponseEntity.ok("Removed from favorites");
-    }
 
-    @DeleteMapping("/{propertyId}")
-    public ResponseEntity<String> removeFavorite(@PathVariable Long propertyId, Authentication auth) {
-        favoriteService.removeFromFavorites(auth.getName(), propertyId);
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> removeFavorite(@PathVariable Long id, Authentication auth) {
+        favoriteService.removeFavorite(auth.getName(), id);
         return ResponseEntity.ok("Removed from favorites");
     }
 

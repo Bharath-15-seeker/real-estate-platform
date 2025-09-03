@@ -115,7 +115,7 @@ public class PortfolioService {
             return portfolioRepo.save(portfolio);
     }
 
-    public Optional<Portfolio> getbypropertyId(Long id) {
+    public Optional<Portfolio> getbyportfolioId(Long id) {
         return portfolioRepo.findById(id);
     }
 }

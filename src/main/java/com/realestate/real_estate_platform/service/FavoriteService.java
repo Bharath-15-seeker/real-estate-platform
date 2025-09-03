@@ -47,12 +47,7 @@ public class FavoriteService {
     }
 
 
-    @Transactional
-    public void removeFromFavorites(String userEmail, Long propertyId) {
-        User user = userRepo.findByEmail(userEmail).orElseThrow();
-        Property property = propertyRepo.findById(propertyId).orElseThrow();
-        favoriteRepo.deleteByUserAndProperty(user, property);
-    }
+
 
     public List<Favorite> getFavorites(String userEmail) {
         User user = userRepo.findByEmail(userEmail)
@@ -73,10 +68,24 @@ public class FavoriteService {
         favoriteRepo.save(favorite);
     }
 
+
+
     @Transactional
-    public void removeportFavorites(String userEmail, Long id) {
-        User user = userRepo.findByEmail(userEmail).orElseThrow();
-        Portfolio portfolio = portfolioRepo.findById(id).orElseThrow();
-        favoriteRepo.deleteByUserAndPortfolio(user, portfolio);
+    public void removeFavorite(String userEmail, Long favoriteId) {
+        User user = userRepo.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Favorite favorite = favoriteRepo.findById(favoriteId)
+                .orElseThrow(() -> new RuntimeException("Favorite not found"));
+
+        // Ensure this favorite belongs to the logged-in user
+        if (!favorite.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Not authorized to delete this favorite");
+        }
+
+        // ✅ Just delete directly
+        favoriteRepo.delete(favorite);
     }
+
+
 }
