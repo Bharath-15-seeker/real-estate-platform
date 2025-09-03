@@ -2,10 +2,12 @@ package com.realestate.real_estate_platform.service;
 
 import com.realestate.real_estate_platform.dto.PropertyDTO;
 import com.realestate.real_estate_platform.entity.Favorite;
+import com.realestate.real_estate_platform.entity.Portfolio;
 import com.realestate.real_estate_platform.entity.Property;
 import com.realestate.real_estate_platform.entity.User;
 import com.realestate.real_estate_platform.mapper.PropertyMapper;
 import com.realestate.real_estate_platform.repositories.FavoriteRepository;
+import com.realestate.real_estate_platform.repositories.PortfolioRepository;
 import com.realestate.real_estate_platform.repositories.PropertyRepository;
 import com.realestate.real_estate_platform.repositories.UserRepository;
 import jakarta.transaction.Transactional;
@@ -23,6 +25,8 @@ public class FavoriteService {
     private final FavoriteRepository favoriteRepo;
     private final UserRepository userRepo;
     private final PropertyRepository propertyRepo;
+    private final PortfolioRepository portfolioRepo;
+
 
     public void addToFavorites(String userEmail, Long propertyId) {
         User user = userRepo.findByEmail(userEmail)
@@ -50,9 +54,29 @@ public class FavoriteService {
         favoriteRepo.deleteByUserAndProperty(user, property);
     }
 
-    public List<PropertyDTO> getFavorites(String userEmail) {
-        return favoriteRepo.findByUserEmail(userEmail).stream()
-                .map(fav -> PropertyMapper.toDTO(fav.getProperty()))
-                .toList();
+    public List<Favorite> getFavorites(String userEmail) {
+        User user = userRepo.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return favoriteRepo.findByUserId(user.getId());
+    }
+
+
+    public void addportfavorite(String userEmail, Long id) {
+        User user = userRepo.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Portfolio portfolio = portfolioRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Property not found"));
+
+        Favorite favorite = new Favorite();
+        favorite.setUser(user);
+        favorite.setPortfolio(portfolio);
+        favoriteRepo.save(favorite);
+    }
+
+    @Transactional
+    public void removeportFavorites(String userEmail, Long id) {
+        User user = userRepo.findByEmail(userEmail).orElseThrow();
+        Portfolio portfolio = portfolioRepo.findById(id).orElseThrow();
+        favoriteRepo.deleteByUserAndPortfolio(user, portfolio);
     }
 }
