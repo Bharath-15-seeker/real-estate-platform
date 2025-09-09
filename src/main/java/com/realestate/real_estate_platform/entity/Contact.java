@@ -29,5 +29,11 @@ public class Contact {
 
     private Property property;
 
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "portfolio_id", nullable = false)
+
+    private Portfolio portfolio;
+
 }
 

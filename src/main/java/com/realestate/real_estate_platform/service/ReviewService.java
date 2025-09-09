@@ -53,4 +53,8 @@ public class ReviewService {
                         review.getCreatedAt()))
                 .collect(Collectors.toList());
     }
+
+    public void deleteReview(Long reviewId) {
+        reviewRepo.deleteById(reviewId);
+    }
 }

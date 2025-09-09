@@ -46,7 +46,7 @@ public class ContactController {
     @Autowired
     private JavaMailSender mailSender;
 
-    @PostMapping("/{propertyId}")
+    @PostMapping("/property/{propertyId}")
     public ResponseEntity<Contact> contactPropertyOwner(@PathVariable Long propertyId,
                                                         @RequestBody Contact contactRequest) {
         Property property = propertyRepository.findById(propertyId)
@@ -63,16 +63,16 @@ public class ContactController {
     }
 
 
-    @PostMapping("/{portfolioId}/portfolio")
-    public ResponseEntity<PortfolioContact> contactPortfolioOwner(
+    @PostMapping("/portfolio/{portfolioId}")
+    public ResponseEntity<Contact> contactPortfolioOwner(
             @PathVariable Long portfolioId,
-            @RequestBody PortfolioContact contactRequest) {
+            @RequestBody Contact contactRequest) {
 
         Portfolio portfolio = portfolioRepo.findById(portfolioId)
                 .orElseThrow(() -> new RuntimeException("Portfolio not found"));
 
         contactRequest.setPortfolio(portfolio);
-        PortfolioContact saved = portfolioContactRepository.save(contactRequest);
+        Contact saved = contactRepository.save(contactRequest);
 
         // Send email to portfolio owner
         String ownerEmail = portfolio.getOwner().getEmail();
@@ -82,7 +82,7 @@ public class ContactController {
     }
 
 
-    private void sendPortfolioContactEmail(String to, PortfolioContact contactRequest) {
+    private void sendPortfolioContactEmail(String to, Contact contactRequest) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("New Inquiry for Your Portfolio");

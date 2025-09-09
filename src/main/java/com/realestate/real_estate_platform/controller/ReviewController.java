@@ -23,6 +23,14 @@ public class ReviewController {
         return ResponseEntity.ok("Review added successfully");
     }
 
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<String> deleteReview(@PathVariable Long reviewId)
+    {
+        reviewService.deleteReview(reviewId);
+        return ResponseEntity.ok("Review deleted successfully");
+    }
+
+
     @GetMapping("/{portfolioId}")
     public ResponseEntity<List<ReviewResponse>> getReviews(@PathVariable Long portfolioId) {
         return ResponseEntity.ok(reviewService.getReviewsForProperty(portfolioId));
