@@ -278,6 +278,15 @@ function getFromLocalStorage(key, defaultValue = null) {
         return defaultValue;
     }
 }
+// Image URL Builder
+function getImageUrl(path) {
+    if (!path) return '';
+    // Backend sends relative path like "/uploads/abc.jpg"
+    if (path.startsWith('/uploads')) {
+        return `http://localhost:8081${path}`;
+    }
+    return path; // In case backend already sends full URL
+}
 
 // URL Parameter Helpers
 function getUrlParameter(name) {
@@ -389,3 +398,66 @@ if (typeof module !== 'undefined' && module.exports) {
         debounce
     };
 }
+
+function initCarousel() {
+  const track = document.querySelector('.carousel-track');
+  if (!track) return; // no carousel if only 1 image
+
+  const slides = Array.from(track.children);
+  const prevButton = document.querySelector('.carousel-btn.prev');
+  const nextButton = document.querySelector('.carousel-btn.next');
+  let currentIndex = 0;
+
+  function updateCarousel() {
+    track.style.transform = `translateX(-${currentIndex * 100}%)`;
+  }
+
+  if (nextButton) {
+    nextButton.addEventListener('click', () => {
+      currentIndex = (currentIndex + 1) % slides.length;
+      updateCarousel();
+    });
+  }
+
+  if (prevButton) {
+    prevButton.addEventListener('click', () => {
+      currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+      updateCarousel();
+    });
+  }
+  // 🔥 Autoplay every 5 seconds
+  setInterval(() => {
+    currentIndex = (currentIndex + 1) % slides.length;
+    updateCarousel();
+  }, 10000);
+}
+
+// Call after portfolio loads
+setTimeout(initCarousel, 500);
+
+
+// Add review submission
+const reviewForm = document.getElementById('reviewForm');
+if (reviewForm) {
+    reviewForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const rating = document.getElementById('rating').value;
+        const comment = document.getElementById('comment').value;
+
+        const requestBody = {
+            portfolioId: portfolioId,
+            rating: parseInt(rating),
+            comment: comment
+        };
+
+        try {
+            await makeRequest('/api/reviews', 'POST', requestBody, true);
+            showMessage("Review added successfully!", "success");
+            loadPortfolioDetail(); // reload reviews
+        } catch (err) {
+            showMessage("Failed to add review. Please try again.", "error");
+        }
+    });
+}
+

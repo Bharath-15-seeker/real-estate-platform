@@ -23,8 +23,8 @@ public class ReviewController {
         return ResponseEntity.ok("Review added successfully");
     }
 
-    @GetMapping("/{propertyId}")
-    public ResponseEntity<List<ReviewResponse>> getReviews(@PathVariable Long propertyId) {
-        return ResponseEntity.ok(reviewService.getReviewsForProperty(propertyId));
+    @GetMapping("/{portfolioId}")
+    public ResponseEntity<List<ReviewResponse>> getReviews(@PathVariable Long portfolioId) {
+        return ResponseEntity.ok(reviewService.getReviewsForProperty(portfolioId));
     }
 }

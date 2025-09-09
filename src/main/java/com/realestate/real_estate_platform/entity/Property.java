@@ -47,10 +47,6 @@ public class Property {
 //    @JsonIgnoreProperties("property") // prevents infinite recursion during JSON serialization
 //    private List<PropertyImage> images = new ArrayList<>();
 
-    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    @JsonIgnoreProperties("property")
-    private List<Review> reviews;
 
     // Link to the user who posted the property
 

@@ -62,86 +62,119 @@
     });
 
     async function loadPortfolioDetail() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const portfolioId = urlParams.get('id');
+    const urlParams = new URLSearchParams(window.location.search);
+    const portfolioId = urlParams.get('id');
 
-        if (!portfolioId) {
-            window.location.href = 'portfolios.html';
-            return;
-        }
-
-        const loadingElement = document.getElementById('portfolioLoading');
-        const detailElement = document.getElementById('portfolioDetail');
-
-        try {
-
-           const portfolio = await makeRequest(`/portfolio/${portfolioId}`, 'GET',null,true);
-
-            loadingElement.style.display = 'none';
-            detailElement.style.display = 'block';
-
-            detailElement.innerHTML = `
-    <div class="portfolio-header">
-        <div class="portfolio-avatar-large">
-            ${portfolio.dp
-                ? `<img src="${getImageUrl(portfolio.dp)}" alt="${portfolio.title}" class="portfolio-dp">`
-                : `<i class="fas fa-user"></i>`}
-        </div>
-        <div class="portfolio-info">
-            <h1>${portfolio.title}</h1>
-            <div class="portfolio-stats">
-                <span class="stat">
-                    <i class="fas fa-tags"></i>
-                    ${portfolio.category || 'Uncategorized'}
-                </span>
-            </div>
-        </div>
-    </div>
-
-    <div class="portfolio-content">
-        ${portfolio.description ? `
-            <div class="portfolio-bio">
-                <h2>Description</h2>
-                <p>${portfolio.description}</p>
-            </div>
-        ` : ''}
-
-        ${portfolio.workimages && portfolio.workimages.length > 0 ? `
-            <div class="portfolio-work">
-                <h2>Work Images</h2>
-                <div class="work-images-grid">
-                    ${portfolio.workimages.map(img => `
-                        <div class="work-image">
-                            <img src="${getImageUrl(img)}" alt="Work image">
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        ` : '<p class="empty-state">No work images uploaded.</p>'}
-    </div>
-
-
-                <div class="back-button">
-                    <button class="btn btn-outline" onclick="window.history.back()">
-                        <i class="fas fa-arrow-left"></i> Back to Portfolios
-                    </button>
-                </div>
-            `;
-
-        } catch (error) {
-            loadingElement.style.display = 'none';
-            detailElement.style.display = 'block';
-            detailElement.innerHTML = `
-                <div class="error-state">
-                    <h2>Portfolio Not Found</h2>
-                    <p>The portfolio you're looking for doesn't exist or has been removed.</p>
-                    <a href="portfolios.html" class="btn btn-primary">Back to Portfolios</a>
-                </div>
-            `;
-        }
-        console.log("Portfolio ID from URL:", portfolioId);
-
+    if (!portfolioId) {
+        window.location.href = 'portfolios.html';
+        return;
     }
+
+    const loadingElement = document.getElementById('portfolioLoading');
+    const detailElement = document.getElementById('portfolioDetail');
+
+    try {
+        const portfolio = await makeRequest(`/portfolio/${portfolioId}`, 'GET', null, true);
+
+        // Fetch reviews for this portfolio
+        const reviews = await makeRequest(`/reviews/${portfolioId}`, 'GET', null, true);
+
+        loadingElement.style.display = 'none';
+        detailElement.style.display = 'block';
+
+        detailElement.innerHTML = `
+
+
+
+            <div class="portfolio-header">
+                <div class="portfolio-avatar-large">
+                    ${portfolio.dp
+                        ? `<img src="${getImageUrl(portfolio.dp)}" alt="${portfolio.title}" class="portfolio-dp">`
+                        : `<i class="fas fa-user"></i>`}
+                </div>
+                <div class="portfolio-info">
+                    <h1>${portfolio.title}</h1>
+                    <div class="portfolio-stats">
+                        <span class="stat">
+                            <i class="fas fa-tags"></i>
+                            ${portfolio.category || 'Uncategorized'}
+                        </span>
+                        ${portfolio.year_of_exp ? `
+                        <span class="stat">
+                            <i class="fas fa-briefcase"></i>
+                            ${portfolio.year_of_exp} years experience
+                        </span>` : ''}
+                    </div>
+                </div>
+            </div>
+
+            <div class="portfolio-content">
+                ${portfolio.description ? `
+                    <div class="portfolio-bio">
+                        <h2>Description</h2>
+                        <p>${portfolio.description}</p>
+                    </div>` : ''}
+
+                ${portfolio.workimages && portfolio.workimages.length > 0 ? `
+                <div class="portfolio-work">
+                    <h2>Work Images</h2>
+                    <div class="carousel">
+                        <div class="carousel-track">
+                            ${portfolio.workimages.map(img => `
+                                <div class="carousel-slide">
+                                    <img src="${getImageUrl(img)}" alt="Work image">
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${portfolio.workimages.length > 1 ? `
+                            <button class="carousel-btn prev">&#10094;</button>
+                            <button class="carousel-btn next">&#10095;</button>
+                        ` : ''}
+                    </div>
+                </div>` : '<p class="empty-state">No work images uploaded.</p>'}
+
+                <div class="portfolio-reviews">
+                    <h2>Reviews</h2>
+                    ${reviews.length > 0 ? `
+                        <ul class="review-list">
+                            ${reviews.map(r => `
+                                <li class="review-item">
+                                    <div class="review-header">
+                                        <strong>${r.reviewerName || 'Anonymous'}</strong>
+                                        <span class="rating">⭐ ${r.rating}/5</span>
+                                    </div>
+                                    <p>${r.comment}</p>
+                                    <small>${new Date(r.createdAt).toLocaleDateString()}</small>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    ` : '<p class="empty-state">No reviews yet.</p>'}
+                </div>
+
+
+            </div>
+
+            <div class="back-button">
+                <button class="btn btn-outline" onclick="window.history.back()">
+                    <i class="fas fa-arrow-left"></i> Back to Portfolios
+                </button>
+            </div>
+        `;
+    } catch (error) {
+        loadingElement.style.display = 'none';
+        detailElement.style.display = 'block';
+        detailElement.innerHTML = `
+            <div class="error-state">
+                <h2>Portfolio Not Found</h2>
+                <p>The portfolio you're looking for doesn't exist or has been removed.</p>
+                <a href="portfolios.html" class="btn btn-primary">Back to Portfolios</a>
+            </div>
+        `;
+    }
+
+    console.log("Portfolio ID from URL:", portfolioId);
+}
+
 </script>
 </body>
 </html>

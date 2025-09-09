@@ -22,6 +22,8 @@ public class Portfolio {
     private String description;
     private String category; // Architect, Designer, etc.
 
+    private Long year_of_exp;
+
     @Column(nullable = false)
     private Boolean isPublic = false; // Rename this
 

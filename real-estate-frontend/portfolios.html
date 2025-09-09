@@ -122,11 +122,11 @@
         <div class="portfolio-card" onclick="viewPortfolio(${portfolio.id})">
             <div class="portfolio-header">
                 <div class="portfolio-avatar">
-                    ${portfolio.dp
-                        ? `<img src="${portfolio.dp}" alt="${portfolio.title}" class="avatar-img">`
-                        : `<i class="fas fa-user"></i>`
-                    }
-                </div>
+                     ${portfolio.dp
+                        ? `<img src="${getImageUrl(portfolio.dp)}" alt="${portfolio.title}" class="avatar-img">`
+                        : `<i class="fas fa-user"></i>`}
+                        </div>
+
                 <div class="portfolio-info">
                     <h3>${portfolio.title || 'Untitled Portfolio'}</h3>
                     <p class="portfolio-category">
@@ -143,14 +143,9 @@
                         : 'No description available'}
                 </p>
 
-                <div class="portfolio-images">
-                    ${portfolio.workimages && portfolio.workimages.length > 0
-                        ? portfolio.workimages.slice(0, 3).map(img =>
-                            `<img src="${img}" alt="Work image" class="portfolio-thumb">`
-                        ).join('')
-                        : '<span class="no-images">No work images</span>'
-                    }
-                </div>
+
+
+
 
                 <div class="portfolio-actions">
                     <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); viewPortfolio(${portfolio.id})">

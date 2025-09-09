@@ -23,11 +23,11 @@ public class Review {
 
     private LocalDateTime createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "property_id")
-    @JsonIgnore
-    private Property property;
 
+    @ManyToOne
+    @JoinColumn(name = "portfolio_id")
+    @JsonIgnore
+    private Portfolio portfolio;
 
     @ManyToOne
     @JsonIgnore
