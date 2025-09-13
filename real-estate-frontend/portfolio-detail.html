@@ -131,23 +131,23 @@
                     </div>
                 </div>` : '<p class="empty-state">No work images uploaded.</p>'}
 
-                <div class="portfolio-reviews">
+                                <div class="portfolio-reviews">
                     <h2>Reviews</h2>
                     ${reviews.length > 0 ? `
                         <ul class="review-list">
                             ${reviews.map(r => `
                                 <li class="review-item">
                                     <div class="review-header">
-                                   <strong>${r.reviewerName || 'Anonymous'}</strong>
-                                <span class="rating">⭐ ${r.rating}/5</span>
-                                         </div>
-                                        <p>${r.comment}</p>
+                                        <strong>${r.reviewerName || 'Anonymous'}</strong>
+                                        <span class="rating">⭐ ${r.rating}/5</span>
+                                    </div>
+                                    <p>${r.comment}</p>
                                     <small>${new Date(r.createdAt).toLocaleDateString()}</small>
 
-                                     <!-- Delete button -->
-                                            <button class="btn btn-outline btn-sm delete-review" data-id="${r.id}">
-                                    <i class="fas fa-trash"></i> Delete
-                                     </button>
+                                    <!-- Delete button -->
+                                    <button class="btn btn-outline btn-sm delete-review" data-id="${r.id}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
                                 </li>
                             `).join('')}
                         </ul>
@@ -155,13 +155,6 @@
                 </div>
 
 
-            // Attach delete review buttons
-document.querySelectorAll('.delete-review').forEach(btn => {
-    btn.addEventListener('click', async function() {
-        const reviewId = this.getAttribute('data-id');
-        await deleteReview(reviewId);
-    });
-});
 
                 <div class="add-review">
     <h3>Write a Review</h3>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Form</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: #f5f5f5;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+        }
+        .contact-form {
+          background: #fff;
+          padding: 20px 30px;
+          border-radius: 8px;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+          width: 100%;
+          max-width: 500px;
+        }
+        .contact-form h2 {
+          text-align: center;
+          margin-bottom: 20px;
+          color: #333;
+        }
+        .form-group {
+          margin-bottom: 15px;
+        }
+        label {
+          display: block;
+          margin-bottom: 5px;
+          color: #444;
+          font-weight: bold;
+        }
+        input, textarea, select, button {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          font-size: 15px;
+        }
+        textarea {
+          resize: vertical;
+          min-height: 100px;
+        }
+        button {
+          background: #007BFF;
+          color: #fff;
+          border: none;
+          cursor: pointer;
+          transition: 0.3s;
+        }
+        button:hover {
+          background: #0056b3;
+        }
+        .success, .error {
+          text-align: center;
+          margin-top: 10px;
+          font-weight: bold;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+
+<form id="contactForm" class="contact-form">
+    <h2>Contact Us</h2>
+
+    <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" required placeholder="Your name">
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required placeholder="you@example.com">
+    </div>
+
+    <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" name="phone" placeholder="e.g. +91 9876543210">
+    </div>
+
+    <div class="form-group">
+        <label for="message">Your Message</label>
+        <textarea id="message" name="message" required placeholder="Write your message here..."></textarea>
+    </div>
+
+    <!-- Optional: Hidden fields for property or portfolio -->
+    <input type="hidden" id="propertyId" name="propertyId" value="">
+    <input type="hidden" id="portfolioId" name="portfolioId" value="">
+
+    <button type="submit">Send Message</button>
+    <div id="formResponse"></div>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const propertyId = urlParams.get('propertyId');
+
+    document.getElementById('contactForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            message: document.getElementById('message').value
+        };
+
+        try {
+            const response = await fetch(`http://localhost:8081/api/contact/property/${propertyId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+    document.getElementById('formResponse').innerHTML = "<p class='success'>Message sent! Redirecting...</p>";
+    setTimeout(() => {
+        window.location.href = `property-detail.html?id=${propertyId}&msg=success`;
+    }, 1000); // wait 1 second for user to see
+}
+
+ else {
+                const error = await response.json();
+                document.getElementById('formResponse').innerHTML = "<p class='error'>Error: " + (error.message || "Failed to send") + "</p>";
+            }
+        } catch (err) {
+            document.getElementById('formResponse').innerHTML = "<p class='error'>Server error. Try again later.</p>";
+            console.error(err);
+        }
+    });
+});
+
+</script>
+
+</body>
+</html>

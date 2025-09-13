@@ -147,8 +147,8 @@
                         </div>
 
                         <div class="property-actions">
-                            <button class="btn btn-primary" onclick="contactOwner(${property.userId})">
-                                <i class="fas fa-envelope"></i> Contact Owner
+                            <button class="btn btn-primary" onclick="openContactForm(${property.id})">
+                            <i class="fas fa-envelope"></i> Contact Owner
                             </button>
                             <button class="btn btn-outline" onclick="window.history.back()">
                                 <i class="fas fa-arrow-left"></i> Back to Properties
@@ -180,6 +180,30 @@
                 thumb.classList.toggle('active', thumb.src === imageSrc);
             });
         }
+
+        function openContactForm(propertyId) {
+    if (!isAuthenticated()) {
+        showMessage('Please login to contact the property owner.', 'error');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 2000);
+        return;
+    }
+    // Redirect to contact.html with propertyId as query param
+    window.location.href = `contact.html?propertyId=${propertyId}`;
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateNavigation();
+    loadPropertyDetail();
+
+    // Show success message if redirected from contact.html
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('msg') === 'success') {
+        showMessage('Message sent successfully!', 'success');
+    }
+});
 
         async function contactOwner(userId) {
             if (!isAuthenticated()) {

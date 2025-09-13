@@ -25,13 +25,13 @@ public class Contact {
 
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "property_id", nullable = false)
+    @JoinColumn(name = "property_id", nullable = true)
 
     private Property property;
 
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "portfolio_id", nullable = false)
+    @JoinColumn(name = "portfolio_id", nullable = true)
 
     private Portfolio portfolio;
 

@@ -444,15 +444,16 @@ if (reviewForm) {
 
         const rating = document.getElementById('rating').value;
         const comment = document.getElementById('comment').value;
+        const portfolioId = getUrlParameter("id"); // ✅ fetch from URL
 
         const requestBody = {
-            portfolioId: portfolioId,
+            portfolioId: portfolioId,   // ✅ defined now
             rating: parseInt(rating),
             comment: comment
         };
 
         try {
-            await makeRequest('/api/reviews', 'POST', requestBody, true);
+            await makeRequest('/reviews', 'POST', requestBody, true);
             showMessage("Review added successfully!", "success");
             loadPortfolioDetail(); // reload reviews
         } catch (err) {
@@ -460,4 +461,3 @@ if (reviewForm) {
         }
     });
 }
-
