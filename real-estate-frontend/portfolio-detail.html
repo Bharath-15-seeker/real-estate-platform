@@ -53,215 +53,207 @@
 <div id="messageContainer" class="message-container"></div>
 
 <script src="script.js"></script>
-
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         updateNavigation();
         loadPortfolioDetail();
     });
 
-    async function loadPortfolioDetail()
-  {
-    const urlParams = new URLSearchParams(window.location.search);
-    const portfolioId = urlParams.get('id');
+    async function loadPortfolioDetail() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const portfolioId = urlParams.get('id');
 
-    if (!portfolioId) {
-        window.location.href = 'portfolios.html';
-        return;
-    }
+        if (!portfolioId) {
+            window.location.href = 'portfolios.html';
+            return;
+        }
 
-    const loadingElement = document.getElementById('portfolioLoading');
-    const detailElement = document.getElementById('portfolioDetail');
+        const loadingElement = document.getElementById('portfolioLoading');
+        const detailElement = document.getElementById('portfolioDetail');
 
-    try {
-        const portfolio = await makeRequest(`/portfolio/${portfolioId}`, 'GET', null, true);
+        try {
+            const portfolio = await makeRequest(`/portfolio/${portfolioId}`, 'GET', null, true);
+            const reviews = await makeRequest(`/reviews/${portfolioId}`, 'GET', null, true);
 
-        // Fetch reviews for this portfolio
-        const reviews = await makeRequest(`/reviews/${portfolioId}`, 'GET', null, true);
+            loadingElement.style.display = 'none';
+            detailElement.style.display = 'block';
 
-        loadingElement.style.display = 'none';
-        detailElement.style.display = 'block';
-
-        detailElement.innerHTML = `
-            <div class="portfolio-header">
-                <div class="portfolio-avatar-large">
-                    ${portfolio.dp
-                        ? `<img src="${getImageUrl(portfolio.dp)}" alt="${portfolio.title}" class="portfolio-dp">`
-                        : `<i class="fas fa-user"></i>`}
-                </div>
-                <div class="portfolio-info">
-                    <h1>${portfolio.title}</h1>
-                    <div class="portfolio-stats">
-                        <span class="stat">
-                            <i class="fas fa-tags"></i>
-                            ${portfolio.category || 'Uncategorized'}
-                        </span>
-                        ${portfolio.year_of_exp ? `
-                        <span class="stat">
-                            <i class="fas fa-briefcase"></i>
-                            ${portfolio.year_of_exp} years experience
-                        </span>` : ''}
+            detailElement.innerHTML = `
+                <div class="portfolio-header">
+                    <div class="portfolio-avatar-large">
+                        ${portfolio.dp
+                            ? `<img src="${getImageUrl(portfolio.dp)}" alt="${portfolio.title}" class="portfolio-dp">`
+                            : `<i class="fas fa-user"></i>`}
                     </div>
-                </div>
-            </div>
-
-            <div class="portfolio-content">
-                ${portfolio.description ? `
-                    <div class="portfolio-bio">
-                        <h2>Description</h2>
-                        <p>${portfolio.description}</p>
-                    </div>` : ''}
-
-                ${portfolio.workimages && portfolio.workimages.length > 0 ? `
-                <div class="portfolio-work">
-                    <h2>Work Images</h2>
-                    <div class="carousel">
-                        <div class="carousel-track">
-                            ${portfolio.workimages.map(img => `
-                                <div class="carousel-slide">
-                                    <img src="${getImageUrl(img)}" alt="Work image">
-                                </div>
-                            `).join('')}
+                    <div class="portfolio-info">
+                        <h1>${portfolio.title}</h1>
+                        <div class="portfolio-stats">
+                            <span class="stat">
+                                <i class="fas fa-tags"></i>
+                                ${portfolio.category || 'Uncategorized'}
+                            </span>
+                            ${portfolio.year_of_exp ? `
+                            <span class="stat">
+                                <i class="fas fa-briefcase"></i>
+                                ${portfolio.year_of_exp} years experience
+                            </span>` : ''}
                         </div>
-                        ${portfolio.workimages.length > 1 ? `
-                            <button class="carousel-btn prev">&#10094;</button>
-                            <button class="carousel-btn next">&#10095;</button>
-                        ` : ''}
                     </div>
-                </div>` : '<p class="empty-state">No work images uploaded.</p>'}
-
-                                <div class="portfolio-reviews">
-                    <h2>Reviews</h2>
-                    ${reviews.length > 0 ? `
-                        <ul class="review-list">
-                            ${reviews.map(r => `
-                                <li class="review-item">
-                                    <div class="review-header">
-                                        <strong>${r.reviewerName || 'Anonymous'}</strong>
-                                        <span class="rating">⭐ ${r.rating}/5</span>
-                                    </div>
-                                    <p>${r.comment}</p>
-                                    <small>${new Date(r.createdAt).toLocaleDateString()}</small>
-
-                                    <!-- Delete button -->
-                                    <button class="btn btn-outline btn-sm delete-review" data-id="${r.id}">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    ` : '<p class="empty-state">No reviews yet.</p>'}
                 </div>
 
+                <div class="portfolio-content">
+                    ${portfolio.description ? `
+                        <div class="portfolio-bio">
+                            <h2>Description</h2>
+                            <p>${portfolio.description}</p>
+                        </div>` : ''}
 
+                    ${portfolio.workimages && portfolio.workimages.length > 0 ? `
+                    <div class="portfolio-work">
+                        <h2>Work Images</h2>
+                        <div class="carousel">
+                            <div class="carousel-track">
+                                ${portfolio.workimages.map(img => `
+                                    <div class="carousel-slide">
+                                        <img src="${getImageUrl(img)}" alt="Work image">
+                                    </div>
+                                `).join('')}
+                            </div>
+                            ${portfolio.workimages.length > 1 ? `
+                                <button class="carousel-btn prev">&#10094;</button>
+                                <button class="carousel-btn next">&#10095;</button>
+                            ` : ''}
+                        </div>
+                    </div>` : '<p class="empty-state">No work images uploaded.</p>'}
 
-                <div class="add-review">
-    <h3>Write a Review</h3>
-    <form id="reviewForm">
-        <textarea id="reviewComment" placeholder="Write your review..." required></textarea>
-        <label for="reviewRating">Rating (1-5):</label>
-        <select id="reviewRating" required>
-            <option value="">Select</option>
-            <option value="1">⭐ 1</option>
-            <option value="2">⭐ 2</option>
-            <option value="3">⭐ 3</option>
-            <option value="4">⭐ 4</option>
-            <option value="5">⭐ 5</option>
-        </select>
-        <button type="submit" class="btn btn-primary">Submit Review</button>
-    </form>
-</div>
+                    <div class="portfolio-reviews">
+                        <h2>Reviews</h2>
+                        ${reviews.length > 0 ? `
+                            <ul class="review-list">
+                                ${reviews.map(r => `
+                                    <li class="review-item">
+                                        <div class="review-header">
+                                            <strong>${r.reviewerName || 'Anonymous'}</strong>
+                                            <span class="rating">⭐ ${r.rating}/5</span>
+                                        </div>
+                                        <p>${r.comment}</p>
+                                        <small>${new Date(r.createdAt).toLocaleDateString()}</small>
+                                        <button class="btn btn-outline btn-sm delete-review" data-id="${r.id}">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : '<p class="empty-state">No reviews yet.</p>'}
+                    </div>
 
+                    <div class="add-review">
+                        <h3>Write a Review</h3>
+                        <form id="reviewForm">
+                            <textarea id="reviewComment" placeholder="Write your review..." required></textarea>
+                            <label for="reviewRating">Rating (1-5):</label>
+                            <select id="reviewRating" required>
+                                <option value="">Select</option>
+                                <option value="1">⭐ 1</option>
+                                <option value="2">⭐ 2</option>
+                                <option value="3">⭐ 3</option>
+                                <option value="4">⭐ 4</option>
+                                <option value="5">⭐ 5</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                        </form>
+                    </div>
+                </div>
 
+                <div class="property-actions">
+                    <button class="btn btn-primary" onclick="openContactForm(${portfolio.id})">
+                        <i class="fas fa-envelope"></i> Contact Owner
+                    </button>
+                    <button class="btn btn-outline" onclick="window.history.back()">
+                        <i class="fas fa-arrow-left"></i> Back to Portfolios
+                    </button>
+                </div>
+            `;
 
-            </div>
+            // Bind review form submit
+            const reviewForm = document.getElementById('reviewForm');
+            if (reviewForm) {
+                reviewForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    await submitReview();
+                });
+            }
 
-            <div class="back-button">
-                <button class="btn btn-outline" onclick="window.history.back()">
-                    <i class="fas fa-arrow-left"></i> Back to Portfolios
-                </button>
-            </div>
-        `;
-    } catch (error) {
-        loadingElement.style.display = 'none';
-        detailElement.style.display = 'block';
-        detailElement.innerHTML = `
-            <div class="error-state">
-                <h2>Portfolio Not Found</h2>
-                <p>The portfolio you're looking for doesn't exist or has been removed.</p>
-                <a href="portfolios.html" class="btn btn-primary">Back to Portfolios</a>
-            </div>
-        `;
+            // Bind delete review buttons
+            document.querySelectorAll('.delete-review').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    await deleteReview(btn.dataset.id);
+                });
+            });
+
+        } catch (error) {
+            loadingElement.style.display = 'none';
+            detailElement.style.display = 'block';
+            detailElement.innerHTML = `
+                <div class="error-state">
+                    <h2>Portfolio Not Found</h2>
+                    <p>The portfolio you're looking for doesn't exist or has been removed.</p>
+                    <a href="portfolios.html" class="btn btn-primary">Back to Portfolios</a>
+                </div>
+            `;
+        }
     }
 
 
-const reviewForm = document.getElementById('reviewForm');
-if (reviewForm) {
-    reviewForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await submitReview();
-    });
-}
-    console.log("Portfolio ID from URL:", portfolioId);
-}
-
-    document.addEventListener('DOMContentLoaded', function() {
-    updateNavigation();
-    loadPortfolioDetail();
-
-    const reviewForm = document.getElementById('reviewForm');
-    if (reviewForm) {
-        reviewForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            await submitReview();
-        });
-    }
-});
-
-async function submitReview() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const portfolioId = urlParams.get('id');
-
-    const comment = document.getElementById('reviewComment').value.trim();
-    const rating = document.getElementById('reviewRating').value;
-
-    if (!comment || !rating) {
-        showMessage("Please fill in all fields.", "error");
+function openContactForm(portfolioId) {
+    if (!isAuthenticated()) {
+        showMessage('Please login to contact the property owner.', 'error');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 2000);
         return;
     }
-
-    try {
-        // Payload for review
-        const payload = {
-            portfolioId: portfolioId,
-            comment: comment,
-            rating: parseInt(rating)
-        };
-
-        await makeRequest('/reviews', 'POST', payload, true);
-
-        showMessage("Review submitted successfully!", "success");
-
-        // Reload reviews after submission
-        loadPortfolioDetail();
-    } catch (error) {
-        showMessage("Failed to submit review. Try again.", "error");
-    }
- }
-    async function deleteReview(reviewId) {
-    if (!confirm("Are you sure you want to delete this review?")) return;
-
-    try {
-        await makeRequest(`/reviews/${reviewId}`, 'DELETE', null, true);
-        showMessage("Review deleted successfully!", "success");
-        loadPortfolioDetail(); // reload reviews
-    } catch (error) {
-        showMessage("Failed to delete review. Try again.", "error");
-    }
+    // Redirect to contact.html with propertyId as query param
+    window.location.href = `contact.html?portfolioId=${portfolioId}`;
 }
+    async function submitReview() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const portfolioId = urlParams.get('id');
 
+        const comment = document.getElementById('reviewComment').value.trim();
+        const rating = document.getElementById('reviewRating').value;
 
+        if (!comment || !rating) {
+            showMessage("Please fill in all fields.", "error");
+            return;
+        }
+
+        try {
+            const payload = {
+                portfolioId: portfolioId,
+                comment: comment,
+                rating: parseInt(rating)
+            };
+
+            await makeRequest('/reviews', 'POST', payload, true);
+            showMessage("Review submitted successfully!", "success");
+            loadPortfolioDetail(); // reload reviews
+        } catch (error) {
+            showMessage("Failed to submit review. Try again.", "error");
+        }
+    }
+
+    async function deleteReview(reviewId) {
+        if (!confirm("Are you sure you want to delete this review?")) return;
+
+        try {
+            await makeRequest(`/reviews/${reviewId}`, 'DELETE', null, true);
+            showMessage("Review deleted successfully!", "success");
+            loadPortfolioDetail();
+        } catch (error) {
+            showMessage("Failed to delete review. Try again.", "error");
+        }
+    }
 
 </script>
 </body>

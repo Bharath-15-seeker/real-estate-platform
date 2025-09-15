@@ -103,6 +103,8 @@
     document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const propertyId = urlParams.get('propertyId');
+    const portfolioId = urlParams.get('portfolioId');
+    const returnUrl = urlParams.get('returnUrl'); // 🔥 new
 
     document.getElementById('contactForm').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -114,23 +116,38 @@
             message: document.getElementById('message').value
         };
 
+        let endpoint = "";
+        if (propertyId) {
+            endpoint = `http://localhost:8081/api/contact/property/${propertyId}`;
+        } else if (portfolioId) {
+            endpoint = `http://localhost:8081/api/contact/portfolio/${portfolioId}`;
+        } else {
+            document.getElementById('formResponse').innerHTML = "<p class='error'>No property or portfolio specified.</p>";
+            return;
+        }
+
         try {
-            const response = await fetch(`http://localhost:8081/api/contact/property/${propertyId}`, {
+            const response = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData)
             });
 
             if (response.ok) {
-    document.getElementById('formResponse').innerHTML = "<p class='success'>Message sent! Redirecting...</p>";
-    setTimeout(() => {
-        window.location.href = `property-detail.html?id=${propertyId}&msg=success`;
-    }, 1000); // wait 1 second for user to see
-}
-
- else {
+                document.getElementById('formResponse').innerHTML = "<p class='success'>Message sent! Redirecting...</p>";
+                setTimeout(() => {
+                    if (returnUrl) {
+                        window.location.href = returnUrl; // 🔥 back to portfolio-detail
+                    } else if (propertyId) {
+                        window.location.href = `property-detail.html?id=${propertyId}&msg=success`;
+                    } else if (portfolioId) {
+                        window.location.href = `portfolio-detail.html?id=${portfolioId}&msg=success`;
+                    }
+                }, 1000);
+            } else {
                 const error = await response.json();
-                document.getElementById('formResponse').innerHTML = "<p class='error'>Error: " + (error.message || "Failed to send") + "</p>";
+                document.getElementById('formResponse').innerHTML =
+                    "<p class='error'>Error: " + (error.message || "Failed to send") + "</p>";
             }
         } catch (err) {
             document.getElementById('formResponse').innerHTML = "<p class='error'>Server error. Try again later.</p>";
