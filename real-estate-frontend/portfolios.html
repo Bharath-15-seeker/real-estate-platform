@@ -118,14 +118,18 @@
         function displayPortfolios() {
     const portfoliosGrid = document.getElementById('portfoliosGrid');
 
-    portfoliosGrid.innerHTML = filteredPortfolios.map(portfolio => `
+    portfoliosGrid.innerHTML = filteredPortfolios.map(portfolio => {
+        const roundedRating = Math.round(portfolio.rating || 0);
+        const stars = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
+
+        return `
         <div class="portfolio-card" onclick="viewPortfolio(${portfolio.id})">
             <div class="portfolio-header">
                 <div class="portfolio-avatar">
-                     ${portfolio.dp
+                    ${portfolio.dp
                         ? `<img src="${getImageUrl(portfolio.dp)}" alt="${portfolio.title}" class="avatar-img">`
                         : `<i class="fas fa-user"></i>`}
-                        </div>
+                </div>
 
                 <div class="portfolio-info">
                     <h3>${portfolio.title || 'Untitled Portfolio'}</h3>
@@ -133,6 +137,9 @@
                         <i class="fas fa-briefcase"></i>
                         ${portfolio.category || 'Uncategorized'}
                     </p>
+                    <div class="portfolio-rating" style="color:#e6b800; font-size:14px; margin-top:4px;">
+                        ${stars} (${portfolio.rating ? portfolio.rating.toFixed(1) : '0.0'})
+                    </div>
                 </div>
             </div>
 
@@ -143,10 +150,6 @@
                         : 'No description available'}
                 </p>
 
-
-
-
-
                 <div class="portfolio-actions">
                     <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); viewPortfolio(${portfolio.id})">
                         <i class="fas fa-eye"></i> View Details
@@ -154,8 +157,10 @@
                 </div>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
+
 
 
         function searchPortfolios() {

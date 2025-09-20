@@ -1,5 +1,6 @@
 package com.realestate.real_estate_platform.controller;
 
+import com.realestate.real_estate_platform.dto.PortfolioReviewsResponse;
 import com.realestate.real_estate_platform.dto.ReviewRequest;
 import com.realestate.real_estate_platform.dto.ReviewResponse;
 import com.realestate.real_estate_platform.service.ReviewService;
@@ -30,6 +31,13 @@ public class ReviewController {
         return ResponseEntity.ok("Review deleted successfully");
     }
 
+    @GetMapping("/{portfolioId}/reviews")
+    public ResponseEntity<PortfolioReviewsResponse> getReviewsForPortfolio(
+            @PathVariable Long portfolioId) {
+
+        PortfolioReviewsResponse response = reviewService.getnReviewsForProperty(portfolioId);
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/{portfolioId}")
     public ResponseEntity<List<ReviewResponse>> getReviews(@PathVariable Long portfolioId) {

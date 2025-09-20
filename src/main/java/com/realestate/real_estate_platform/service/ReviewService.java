@@ -1,5 +1,6 @@
 package com.realestate.real_estate_platform.service;
 
+import com.realestate.real_estate_platform.dto.PortfolioReviewsResponse;
 import com.realestate.real_estate_platform.dto.ReviewRequest;
 import com.realestate.real_estate_platform.dto.ReviewResponse;
 import com.realestate.real_estate_platform.entity.Portfolio;
@@ -43,10 +44,29 @@ public class ReviewService {
         reviewRepo.save(review);
     }
 
+    public PortfolioReviewsResponse getnReviewsForProperty(Long portfolioId) {
+        List<ReviewResponse> reviewResponses = reviewRepo.findByPortfolioId(portfolioId)
+                .stream()
+                .map(review -> new ReviewResponse(
+                        Math.toIntExact(review.getUser().getId()),
+                        review.getUser().getName(),
+                        review.getRating(),
+                        review.getComment(),
+                        review.getCreatedAt()))
+                .collect(Collectors.toList());
+
+        Double averageRating = reviewRepo.findAverageRatingByPortfolioId(portfolioId);
+        if (averageRating == null) averageRating = 0.0;
+
+        return new PortfolioReviewsResponse(reviewResponses, averageRating);
+    }
+
+
     public List<ReviewResponse> getReviewsForProperty(Long portfolioId) {
         return reviewRepo.findByPortfolioId(portfolioId)
                 .stream()
                 .map(review -> new ReviewResponse(
+                        Math.toIntExact(review.getUser().getId()),
                         review.getUser().getName(),
                         review.getRating(),
                         review.getComment(),
