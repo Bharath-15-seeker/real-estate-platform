@@ -64,6 +64,7 @@ public class Property {
     @Column(name = "image_url")
     private List<String> imageUrls = new ArrayList<>();
 
-
+    private Double latitude;
+    private Double longitude;
 }
 

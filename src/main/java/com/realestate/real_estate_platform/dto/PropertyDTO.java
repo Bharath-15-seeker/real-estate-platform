@@ -26,8 +26,12 @@ public class PropertyDTO {
     private LocalDateTime postedAt;
     private List<String> imageUrls;
 
+    private Double latitude;
+    private Double longitude;
+
     public static PropertyDTO from(Property property) {
         PropertyDTO dto = new PropertyDTO();
+
         dto.setId(property.getId());
         dto.setDescription(property.getDescription());
         dto.setPrice(property.getPrice());
@@ -43,7 +47,8 @@ public class PropertyDTO {
         if (property.getImageUrls() != null) {
             dto.setImageUrls(new ArrayList<>(property.getImageUrls()));
         }
-
+        dto.setLatitude(property.getLatitude());
+        dto.setLongitude(property.getLongitude());
         return dto;
     }
 }

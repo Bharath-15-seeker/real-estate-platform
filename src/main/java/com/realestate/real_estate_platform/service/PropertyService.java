@@ -113,7 +113,12 @@ public class PropertyService {
 //        return properties.stream().map(PropertyDTO::from).collect(Collectors.toList());
 //    }
 
-    public List<PropertyDTO> searchProperties(String location,String title, String typeStr, Double minPrice, Double maxPrice, Integer bhk, String facing, String proptype) {
+    public List<PropertyDTO> searchProperties(
+            String location, String title, String typeStr,
+            Double minPrice, Double maxPrice, Integer bhk,
+            String facing, String proptype,
+            Double lat, Double lng, Double radiusKm
+    ) {
         PropertyType type = null;
         if (typeStr != null && !typeStr.isBlank()) {
             try {
@@ -122,18 +127,44 @@ public class PropertyService {
                 throw new RuntimeException("Invalid property type: " + typeStr);
             }
         }
-        Prop_type prop_type=null;
-        if(proptype !=null && !proptype.isBlank()){
+
+        Prop_type prop_type = null;
+        if (proptype != null && !proptype.isBlank()) {
             try {
                 prop_type = Prop_type.valueOf(proptype.toUpperCase());
             } catch (IllegalArgumentException e) {
                 throw new RuntimeException("Invalid property type: " + proptype);
             }
         }
-        return propertyRepo.search(location, title,type, minPrice, maxPrice, bhk, facing, prop_type)
-                .stream()
-                .map(PropertyDTO::from)  // convert to DTO
-                .toList();
+
+        List<Property> properties = propertyRepo.search(
+                location, title, type, minPrice, maxPrice, bhk, facing, prop_type
+        );
+
+        // ✅ If lat/lng provided, filter properties by distance
+        if (lat != null && lng != null && radiusKm != null) {
+            properties = properties.stream()
+                    .filter(p -> p.getLatitude() != null && p.getLongitude() != null)
+                    .filter(p -> {
+                        double dist = distanceKm(lat, lng, p.getLatitude(), p.getLongitude());
+                        return dist <= radiusKm;
+                    })
+                    .toList();
+        }
+
+        return properties.stream().map(PropertyDTO::from).toList();
+    }
+
+    // ✅ Haversine formula for distance (km)
+    private double distanceKm(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // Earth radius in km
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon/2) * Math.sin(dLon/2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
     }
 
 

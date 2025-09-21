@@ -5,523 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Property Detail - PropertyHub</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #1f2937;
-            background-color: #f9fafb;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1f2937; background-color: #f9fafb; }
         /* Navigation */
-        .navbar {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-        }
-
-        .nav-logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #3b82f6;
-        }
-
-        .nav-logo a {
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .nav-menu {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-        }
-
-        .nav-link {
-            text-decoration: none;
-            color: #6b7280;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .nav-link:hover {
-            color: #3b82f6;
-        }
-
-        .auth-buttons, .user-menu {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .btn {
-            padding: 0.625rem 1.25rem;
-            border-radius: 0.5rem;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.875rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background-color: #3b82f6;
-            color: white;
-            border: 2px solid #3b82f6;
-        }
-
-        .btn-primary:hover {
-            background-color: #2563eb;
-            border-color: #2563eb;
-            transform: translateY(-1px);
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            color: #3b82f6;
-            border: 2px solid #3b82f6;
-        }
-
-        .btn-outline:hover {
-            background-color: #3b82f6;
-            color: white;
-            transform: translateY(-1px);
-        }
-
-        /* Container */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* Breadcrumb */
-        .breadcrumb {
-            margin-bottom: 2rem;
-            font-size: 0.875rem;
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .breadcrumb a {
-            color: #3b82f6;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .breadcrumb a:hover {
-            color: #2563eb;
-        }
-
-        .separator {
-            color: #9ca3af;
-        }
-
-        .current {
-            color: #1f2937;
-            font-weight: 500;
-        }
-
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #6b7280;
-            font-size: 1.125rem;
-        }
-
-        .loading i {
-            margin-right: 0.5rem;
-            color: #3b82f6;
-        }
-
-        /* Property Detail */
-        .property-detail {
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-        }
-
-        .property-header {
-            padding: 2rem 2rem 1rem;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .property-header h1 {
-            font-size: 2.25rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 1rem;
-            line-height: 1.2;
-        }
-
-        .property-price-location {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .price {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #10b981;
-            background: linear-gradient(135deg, #10b981, #059669);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .location {
-            font-size: 1.125rem;
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .location i {
-            color: #ef4444;
-        }
-
-        /* Property Images */
-        .property-images {
-            padding: 2rem;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .portfolio-work h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: #1f2937;
-        }
-
-        .carousel {
-            position: relative;
-            max-width: 800px;
-            margin: 0 auto;
-            border-radius: 1rem;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .carousel-track {
-            display: flex;
-            transition: transform 0.5s ease;
-        }
-
-        .carousel-slide {
-            min-width: 100%;
-            position: relative;
-        }
-
-        .carousel-slide img {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .carousel-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            font-size: 1.25rem;
-            color: #1f2937;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-        }
-
-        .carousel-btn:hover {
-            background: white;
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .carousel-btn.prev {
-            left: 1rem;
-        }
-
-        .carousel-btn.next {
-            right: 1rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: #6b7280;
-            font-size: 1.125rem;
-            background: #f9fafb;
-            border-radius: 0.5rem;
-            border: 2px dashed #d1d5db;
-        }
-
-        /* Property Content */
-        .property-content {
-            padding: 2rem;
-        }
-
-        .property-description {
-            margin-bottom: 3rem;
-        }
-
-        .property-description h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #1f2937;
-        }
-
-        .property-description p {
-            font-size: 1rem;
-            line-height: 1.7;
-            color: #4b5563;
-        }
-
-        .property-details {
-            margin-bottom: 3rem;
-        }
-
-        .property-details h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: #1f2937;
-        }
-
-        .details-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
-        }
-
-        .detail-item {
-            background: #f8fafc;
-            padding: 1rem 1.5rem;
-            border-radius: 0.75rem;
-            border: 1px solid #e2e8f0;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-        }
-
-        .detail-item:hover {
-            background: #f1f5f9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        }
-
-        .detail-item strong {
-            color: #1f2937;
-            font-weight: 600;
-            margin-right: 0.5rem;
-        }
-
-        /* Property Actions */
-        .property-actions {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            padding-top: 2rem;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .property-actions .btn {
-            padding: 0.875rem 1.75rem;
-            font-size: 1rem;
-        }
-
-        /* Error State */
-        .error-state {
-            text-align: center;
-            padding: 4rem 2rem;
-        }
-
-        .error-state h2 {
-            font-size: 1.875rem;
-            font-weight: 600;
-            color: #ef4444;
-            margin-bottom: 1rem;
-        }
-
-        .error-state p {
-            font-size: 1.125rem;
-            color: #6b7280;
-            margin-bottom: 2rem;
-        }
-
-        /* Message Container */
-        .message-container {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            z-index: 1000;
-            max-width: 400px;
-        }
-
-        .message {
-            padding: 1rem 1.5rem;
-            border-radius: 0.75rem;
-            margin-bottom: 1rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            animation: slideIn 0.3s ease;
-        }
-
-        .message.success {
-            background-color: #d1fae5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
-        }
-
-        .message.error {
-            background-color: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            .nav-container {
-                padding: 1rem;
-                flex-wrap: wrap;
-            }
-
-            .nav-menu {
-                gap: 1rem;
-                flex-wrap: wrap;
-            }
-
-            .container {
-                padding: 1rem;
-            }
-
-            .property-header h1 {
-                font-size: 1.875rem;
-            }
-
-            .property-price-location {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.75rem;
-            }
-
-            .price {
-                font-size: 1.5rem;
-            }
-
-            .property-images {
-                padding: 1rem;
-            }
-
-            .carousel-slide img {
-                height: 250px;
-            }
-
-            .carousel-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-            }
-
-            .property-content {
-                padding: 1.5rem;
-            }
-
-            .details-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .property-actions {
-                flex-direction: column;
-            }
-
-            .property-actions .btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .message-container {
-                top: 0.5rem;
-                right: 0.5rem;
-                left: 0.5rem;
-                max-width: none;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .nav-container {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .breadcrumb {
-                font-size: 0.8rem;
-            }
-
-            .property-header {
-                padding: 1.5rem 1rem 1rem;
-            }
-
-            .property-header h1 {
-                font-size: 1.5rem;
-            }
-
-            .price {
-                font-size: 1.25rem;
-            }
-
-            .location {
-                font-size: 1rem;
-            }
-        }
+        .navbar { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top:0; z-index:1000; border-bottom: 1px solid #e5e7eb; }
+        .nav-container { max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; padding:1rem 2rem; }
+        .nav-logo { font-size:1.5rem; font-weight:700; color:#3b82f6; }
+        .nav-logo a { text-decoration:none; color:inherit; display:flex; align-items:center; gap:0.5rem; }
+        .nav-menu { display:flex; align-items:center; gap:2rem; }
+        .nav-link { text-decoration:none; color:#6b7280; font-weight:500; transition: color 0.3s ease; }
+        .nav-link:hover { color:#3b82f6; }
+        .auth-buttons, .user-menu { display:flex; gap:1rem; }
+        .btn { padding:0.625rem 1.25rem; border-radius:0.5rem; text-decoration:none; font-weight:500; font-size:0.875rem; border:none; cursor:pointer; transition:all 0.3s ease; display:inline-flex; align-items:center; gap:0.5rem; }
+        .btn-primary { background-color:#3b82f6; color:white; border:2px solid #3b82f6; }
+        .btn-primary:hover { background-color:#2563eb; border-color:#2563eb; transform: translateY(-1px); }
+        .btn-outline { background-color:transparent; color:#3b82f6; border:2px solid #3b82f6; }
+        .btn-outline:hover { background-color:#3b82f6; color:white; transform: translateY(-1px); }
+        .container { max-width:1200px; margin:0 auto; padding:2rem; }
+        .breadcrumb { margin-bottom:2rem; font-size:0.875rem; color:#6b7280; display:flex; align-items:center; gap:0.5rem; }
+        .breadcrumb a { color:#3b82f6; text-decoration:none; transition: color 0.3s ease; }
+        .breadcrumb a:hover { color:#2563eb; }
+        .separator { color:#9ca3af; }
+        .current { color:#1f2937; font-weight:500; }
+        .loading { text-align:center; padding:4rem 2rem; color:#6b7280; font-size:1.125rem; }
+        .loading i { margin-right:0.5rem; color:#3b82f6; }
+        .property-detail { background:white; border-radius:1rem; box-shadow:0 4px 25px rgba(0,0,0,0.05); overflow:hidden; }
+        .property-header { padding:2rem 2rem 1rem; border-bottom:1px solid #e5e7eb; }
+        .property-header h1 { font-size:2.25rem; font-weight:700; color:#1f2937; margin-bottom:1rem; line-height:1.2; }
+        .property-price-location { display:flex; flex-wrap:wrap; gap:2rem; align-items:center; }
+        .price { font-size:2rem; font-weight:700; color:#10b981; background: linear-gradient(135deg,#10b981,#059669); background-clip:text; -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .location { font-size:1.125rem; color:#6b7280; display:flex; align-items:center; gap:0.5rem; }
+        .location i { color:#ef4444; }
+        .property-images { padding:2rem; border-bottom:1px solid #e5e7eb; }
+        .portfolio-work h2 { font-size:1.5rem; font-weight:600; margin-bottom:1.5rem; color:#1f2937; }
+        .carousel { position:relative; max-width:800px; margin:0 auto; border-radius:1rem; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.15); }
+        .carousel-track { display:flex; transition: transform 0.5s ease; }
+        .carousel-slide { min-width:100%; position:relative; }
+        .carousel-slide img { width:100%; height:400px; object-fit:cover; display:block; }
+        .carousel-btn { position:absolute; top:50%; transform:translateY(-50%); background: rgba(255,255,255,0.9); border:none; width:50px; height:50px; border-radius:50%; font-size:1.25rem; color:#1f2937; cursor:pointer; transition: all 0.3s ease; box-shadow:0 4px 15px rgba(0,0,0,0.1); z-index:10; }
+        .carousel-btn:hover { background:white; transform: translateY(-50%) scale(1.1); }
+        .carousel-btn.prev { left:1rem; }
+        .carousel-btn.next { right:1rem; }
+        .empty-state { text-align:center; padding:3rem; color:#6b7280; font-size:1.125rem; background:#f9fafb; border-radius:0.5rem; border:2px dashed #d1d5db; }
+
+        /* Property Map */
+        #propertyMap { width:100%; height:400px; border-radius:1rem; margin-bottom:2rem; }
+
+        .property-content { padding:2rem; }
+        .property-description { margin-bottom:3rem; }
+        .property-description h2 { font-size:1.5rem; font-weight:600; margin-bottom:1rem; color:#1f2937; }
+        .property-description p { font-size:1rem; line-height:1.7; color:#4b5563; }
+        .property-details { margin-bottom:3rem; }
+        .property-details h2 { font-size:1.5rem; font-weight:600; margin-bottom:1.5rem; color:#1f2937; }
+        .details-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:1rem; }
+        .detail-item { background:#f8fafc; padding:1rem 1.5rem; border-radius:0.75rem; border:1px solid #e2e8f0; font-size:0.95rem; transition: all 0.3s ease; }
+        .detail-item:hover { background:#f1f5f9; transform:translateY(-2px); box-shadow:0 4px 15px rgba(0,0,0,0.08); }
+        .detail-item strong { color:#1f2937; font-weight:600; margin-right:0.5rem; }
+        .property-actions { display:flex; gap:1rem; flex-wrap:wrap; padding-top:2rem; border-top:1px solid #e5e7eb; }
+        .property-actions .btn { padding:0.875rem 1.75rem; font-size:1rem; }
+        .error-state { text-align:center; padding:4rem 2rem; }
+        .error-state h2 { font-size:1.875rem; font-weight:600; color:#ef4444; margin-bottom:1rem; }
+        .error-state p { font-size:1.125rem; color:#6b7280; margin-bottom:2rem; }
+        .message-container { position:fixed; top:1rem; right:1rem; z-index:1000; max-width:400px; }
+        .message { padding:1rem 1.5rem; border-radius:0.75rem; margin-bottom:1rem; font-weight:500; display:flex; align-items:center; gap:0.75rem; box-shadow:0 10px 30px rgba(0,0,0,0.1); animation: slideIn 0.3s ease; }
+        .message.success { background-color:#d1fae5; color:#065f46; border:1px solid #a7f3d0; }
+        .message.error { background-color:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+
+        @media (max-width:768px){ .nav-container{padding:1rem; flex-wrap:wrap;} .nav-menu{gap:1rem; flex-wrap:wrap;} .container{padding:1rem;} .property-header h1{font-size:1.875rem;} .property-price-location{flex-direction:column; align-items:flex-start; gap:0.75rem;} .price{font-size:1.5rem;} .property-images{padding:1rem;} .carousel-slide img{height:250px;} .carousel-btn{width:40px; height:40px; font-size:1rem;} .property-content{padding:1.5rem;} .details-grid{grid-template-columns:1fr;} .property-actions{flex-direction:column;} .property-actions .btn{width:100%; justify-content:center;} .message-container{top:0.5rem; right:0.5rem; left:0.5rem; max-width:none;} }
+        @media (max-width:480px){ .nav-container{flex-direction:column; gap:1rem;} .breadcrumb{font-size:0.8rem;} .property-header{padding:1.5rem 1rem 1rem;} .property-header h1{font-size:1.5rem;} .price{font-size:1.25rem;} .location{font-size:1rem;} }
     </style>
 </head>
 <body>
@@ -529,10 +86,7 @@
 <nav class="navbar">
     <div class="nav-container">
         <div class="nav-logo">
-            <a href="index.html">
-                <i class="fas fa-home"></i>
-                PropertyHub
-            </a>
+            <a href="index.html"><i class="fas fa-home"></i> PropertyHub</a>
         </div>
         <div class="nav-menu">
             <a href="properties.html" class="nav-link">Browse Properties</a>
@@ -541,7 +95,7 @@
                 <a href="login.html" class="btn btn-outline">Login</a>
                 <a href="register.html" class="btn btn-primary">Register</a>
             </div>
-            <div class="user-menu" id="userMenu" style="display: none;">
+            <div class="user-menu" id="userMenu" style="display:none;">
                 <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
                 <button class="btn btn-outline" onclick="logout()">Logout</button>
             </div>
@@ -561,13 +115,16 @@
         <i class="fas fa-spinner fa-spin"></i> Loading property...
     </div>
 
-    <div class="property-detail" id="propertyDetail" style="display: none;">
+    <div class="property-detail" id="propertyDetail" style="display:none;">
         <!-- Property details will be loaded here -->
     </div>
 </div>
 
 <!-- Success/Error Messages -->
 <div id="messageContainer" class="message-container"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script src="script.js"></script>
 <script>
@@ -579,145 +136,125 @@
     async function loadPropertyDetail() {
         const urlParams = new URLSearchParams(window.location.search);
         const propertyId = urlParams.get('id');
-
-        if (!propertyId) {
-            window.location.href = 'properties.html';
-            return;
-        }
+        if(!propertyId) { window.location.href='properties.html'; return; }
 
         const loadingElement = document.getElementById('propertyLoading');
         const detailElement = document.getElementById('propertyDetail');
 
         try {
-            const property = await makeRequest(`/properties/${propertyId}`, 'GET', null, true);
+            const property = await makeRequest(`/properties/${propertyId}`,'GET',null,true);
 
-            loadingElement.style.display = 'none';
-            detailElement.style.display = 'block';
+            loadingElement.style.display='none';
+            detailElement.style.display='block';
 
             detailElement.innerHTML = `
-                <div class="property-header">
-                    <h1>${property.title}</h1>
-                    <div class="property-price-location">
-                        <span class="price">₹${Number(property.price).toLocaleString()}</span>
-                        <span class="location"><i class="fas fa-map-marker-alt"></i> ${property.location}</span>
+            <div class="property-header">
+                <h1>${property.title}</h1>
+                <div class="property-price-location">
+                    <span class="price">₹${Number(property.price).toLocaleString()}</span>
+                    <span class="location"><i class="fas fa-map-marker-alt"></i> ${property.location}</span>
+                </div>
+            </div>
+
+            <div class="property-images">
+            ${property.imageUrls && property.imageUrls.length > 0 ? `
+            <div class="portfolio-work">
+                <h2>Work Images</h2>
+                <div class="carousel">
+                    <div class="carousel-track">
+                        ${property.imageUrls.map(img => `<div class="carousel-slide"><img src="${getImageUrl(img)}" alt="Work image"></div>`).join('')}
+                    </div>
+                    ${property.imageUrls.length > 1 ? `<button class="carousel-btn prev">&#10094;</button><button class="carousel-btn next">&#10095;</button>` : ''}
+                </div>
+            </div>` : '<p class="empty-state">No work images uploaded.</p>'}
+            </div>
+
+            <!-- Map -->
+            <div id="propertyMap"></div>
+
+            <div class="property-content">
+                <div class="property-description">
+                    <h2>Description</h2>
+                    <p>${property.description}</p>
+                </div>
+
+                <div class="property-details">
+                    <h2>Property Details</h2>
+                    <div class="details-grid">
+                        <div class="detail-item"><strong>Price:</strong> ${Number(property.price).toLocaleString()}</div>
+                        <div class="detail-item"><strong>Location:</strong> ${property.location}</div>
+                        <div class="detail-item"><strong>BHK:</strong> ${property.bhk || '-'}</div>
+                        <div class="detail-item"><strong>Facing:</strong> ${property.facing || '-'}</div>
+                        <div class="detail-item"><strong>Property Type:</strong> ${property.prop_type || '-'}</div>
+                        <div class="detail-item"><strong>Sqft:</strong> ${property.sqft ? property.sqft + ' sqft' : '-'}</div>
+                        <div class="detail-item"><strong>Sale/Rent:</strong> ${property.type || '-'}</div>
+                        <div class="detail-item"><strong>Listed on:</strong> ${new Date(property.postedAt || Date.now()).toLocaleDateString()}</div>
                     </div>
                 </div>
 
-                <div class="property-images">
-${property.imageUrls && property.imageUrls.length > 0 ? `
-<div class="portfolio-work">
-    <h2>Work Images</h2>
-    <div class="carousel">
-        <div class="carousel-track">
-            ${property.imageUrls.map(img => `
-                <div class="carousel-slide">
-                    <img src="${getImageUrl(img)}" alt="Work image">
+                <div class="property-actions">
+                    <button class="btn btn-primary" onclick="openContactForm(${property.id})"><i class="fas fa-envelope"></i> Contact Owner</button>
+                    <button class="btn btn-outline" onclick="window.history.back()"><i class="fas fa-arrow-left"></i> Back to Properties</button>
                 </div>
-            `).join('')}
-        </div>
-        ${property.imageUrls.length > 1 ? `
-            <button class="carousel-btn prev">&#10094;</button>
-            <button class="carousel-btn next">&#10095;</button>
-        ` : ''}
-    </div>
-</div>
-` : '<p class="empty-state">No work images uploaded.</p>'}
-
-</div>
-                <div class="property-content">
-                    <div class="property-description">
-                        <h2>Description</h2>
-                        <p>${property.description}</p>
-                    </div>
-
-                    <div class="property-details">
-                        <h2>Property Details</h2>
-                        <div class="details-grid">
-<div class="detail-item">
-    <strong>Price:</strong> ${Number(property.price).toLocaleString()}
-</div>
-<div class="detail-item">
-    <strong>Location:</strong> ${property.location}
-</div>
-<div class="detail-item">
-    <strong>BHK:</strong> ${property.bhk || '-'}
-</div>
-<div class="detail-item">
-    <strong>Facing:</strong> ${property.facing || '-'}
-</div>
-<div class="detail-item">
-    <strong>Property Type:</strong> ${property.prop_type || '-'}
-</div>
-<div class="detail-item">
-    <strong>Sqft:</strong> ${property.sqft ? property.sqft + ' sqft' : '-'}
-</div>
-<div class="detail-item">
-    <strong>Sale/Rent:</strong> ${property.type || '-'}
-</div>
-<div class="detail-item">
-    <strong>Listed on:</strong> ${new Date(property.postedAt || Date.now()).toLocaleDateString()}
-</div>
-</div>
-                    </div>
-
-                    <div class="property-actions">
-                        <button class="btn btn-primary" onclick="openContactForm(${property.id})">
-                        <i class="fas fa-envelope"></i> Contact Owner
-                        </button>
-                        <button class="btn btn-outline" onclick="window.history.back()">
-                            <i class="fas fa-arrow-left"></i> Back to Properties
-                        </button>
-                    </div>
-                </div>
+            </div>
             `;
 
-        } catch (error) {
-            loadingElement.style.display = 'none';
-            detailElement.style.display = 'block';
-            detailElement.innerHTML = `
-                <div class="error-state">
-                    <h2>Property Not Found</h2>
-                    <p>The property you're looking for doesn't exist or has been removed.</p>
-                    <a href="properties.html" class="btn btn-primary">Back to Properties</a>
-                </div>
-            `;
+           // Initialize Leaflet Map
+if (property.latitude && property.longitude) {
+    const map = L.map('propertyMap').setView([property.latitude, property.longitude], 15);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Add property marker
+    const propertyMarker = L.marker([property.latitude, property.longitude], { draggable: true }).addTo(map);
+    propertyMarker.bindPopup(`<b>${property.title}</b><br>${property.location}`).openPopup();
+
+    // Optional: Show user's current location and distance
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+
+            const userMarker = L.marker([userLat, userLng], { icon: L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64113.png',
+                iconSize: [25, 25]
+            }) }).addTo(map).bindPopup('Your Location').openPopup();
+
+            // Draw a line from user to property
+            const line = L.polyline([[userLat, userLng], [property.latitude, property.longitude]], { color: 'blue' }).addTo(map);
+
+            // Show distance in popup
+            const distanceKm = map.distance([userLat, userLng], [property.latitude, property.longitude]) / 1000;
+            propertyMarker.bindPopup(`<b>${property.title}</b><br>${property.location}<br>Distance: ${distanceKm.toFixed(2)} km`).openPopup();
+        });
+}
+}else {
+    document.getElementById('propertyMap').innerHTML = `<p class="empty-state">Location not available.</p>`;
+}
+
+
+        } catch(error){
+            loadingElement.style.display='none';
+            detailElement.style.display='block';
+            detailElement.innerHTML = `<div class="error-state">
+                <h2>Property Not Found</h2>
+                <p>The property you're looking for doesn't exist or has been removed.</p>
+                <a href="properties.html" class="btn btn-primary">Back to Properties</a>
+            </div>`;
         }
     }
 
-    function changeMainImage(imageSrc) {
-        const mainImage = document.getElementById('mainImage');
-        const thumbnails = document.querySelectorAll('.image-thumbnails img');
-
-        mainImage.src = imageSrc;
-
-        thumbnails.forEach(thumb => {
-            thumb.classList.toggle('active', thumb.src === imageSrc);
-        });
-    }
-
     function openContactForm(propertyId) {
-if (!isAuthenticated()) {
-    showMessage('Please login to contact the property owner.', 'error');
-    setTimeout(() => {
-        window.location.href = 'login.html';
-    }, 2000);
-    return;
-}
-// Redirect to contact.html with propertyId as query param
-window.location.href = `contact.html?propertyId=${propertyId}`;
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-updateNavigation();
-loadPropertyDetail();
-
-// Show success message if redirected from contact.html
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('msg') === 'success') {
-    showMessage('Message sent successfully!', 'success');
-}
-});
-
+        if(!isAuthenticated()){
+            showMessage('Please login to contact the property owner.','error');
+            setTimeout(()=>{ window.location.href='login.html'; },2000);
+            return;
+        }
+        window.location.href=`contact.html?propertyId=${propertyId}`;
+    }
 </script>
 </body>
 </html>

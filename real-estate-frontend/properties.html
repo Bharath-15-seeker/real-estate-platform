@@ -5,20 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Browse Properties - PropertyHub</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <script
+            src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #f8f9fa;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f8f9fa; }
 
 
         /* Navigation */
@@ -511,6 +509,8 @@
                 grid-template-columns: repeat(3, 1fr);
             }
         }
+
+         #map { width: 100%; height: 400px; border-radius: 1rem; margin-bottom: 2rem; }
     </style>
 </head>
 <body>
@@ -556,7 +556,6 @@
                     <i class="fas fa-search"></i> Search
                 </button>
             </div>
-
             <div class="filter-controls">
                 <select id="sortBy">
                     <option value="newest">Newest First</option>
@@ -574,10 +573,13 @@
     <div class="loading" id="propertiesLoading">
         <i class="fas fa-spinner fa-spin"></i> Loading properties...
     </div>
-
     <div class="properties-grid" id="propertiesGrid">
         <!-- Properties will be loaded here -->
     </div>
+
+    <!-- Map for properties -->
+    <h2>Property Locations</h2>
+    <div id="map"></div>
 
     <div class="pagination" id="pagination" style="display: none;">
         <button class="btn btn-outline" id="prevPage" onclick="changePage(-1)">
@@ -599,12 +601,12 @@
     let totalPages = 1;
     let allProperties = [];
     let filteredProperties = [];
+    let map;
+    let markersLayer;
 
     document.addEventListener('DOMContentLoaded', function() {
         updateNavigation();
         loadProperties();
-
-        // Event listeners
         document.getElementById('searchInput').addEventListener('input', searchProperties);
         document.getElementById('sortBy').addEventListener('change', sortProperties);
     });
@@ -650,25 +652,24 @@
                 </div>
                 <div class="property-info">
                     <h3>${property.title || property.bhk + ' BHK in ' + property.location}</h3>
-
                     <span class="property-price">₹${Number(property.price).toLocaleString()}</span>
                     <div class="property-location">
                         <i class="fas fa-map-marker-alt"></i> ${property.location}
                     </div>
-
                     <div class="property-meta">
                         <span><strong>${property.bhk || '-'} BHK</strong></span>
                         <span>${property.prop_type || 'Property'}</span>
                         <span>${property.type || '-'}</span>
                     </div>
-
                     <div class="property-date">
                         <small>Listed on ${new Date(property.postedAt || Date.now()).toLocaleDateString()}</small>
                     </div>
                 </div>
             </div>
         `).join('');
+
         updatePagination();
+        updateMapMarkers();
     }
 
     function updatePagination() {
@@ -704,9 +705,9 @@
             filteredProperties = [...allProperties];
         } else {
             filteredProperties = allProperties.filter(property =>
-                property.title.toLowerCase().includes(searchTerm) ||
-                property.location.toLowerCase().includes(searchTerm) ||
-                property.description.toLowerCase().includes(searchTerm)
+                (property.title || '').toLowerCase().includes(searchTerm) ||
+                (property.location || '').toLowerCase().includes(searchTerm) ||
+                (property.description || '').toLowerCase().includes(searchTerm)
             );
         }
 
@@ -719,15 +720,10 @@
 
         filteredProperties.sort((a, b) => {
             switch (sortBy) {
-                case 'price-low':
-                    return a.price - b.price;
-                case 'price-high':
-                    return b.price - a.price;
-                case 'title':
-                    return a.title.localeCompare(b.title);
-                case 'newest':
-                default:
-                    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+                case 'price-low': return a.price - b.price;
+                case 'price-high': return b.price - a.price;
+                case 'title': return (a.title || '').localeCompare(b.title || '');
+                case 'newest': default: return new Date(b.postedAt || 0) - new Date(a.postedAt || 0);
             }
         });
 
@@ -738,6 +734,39 @@
     function viewProperty(propertyId) {
         window.location.href = `property-detail.html?id=${propertyId}`;
     }
+
+    function initMap() {
+        if (!map) {
+            map = L.map('map').setView([10.0, 77.0], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            markersLayer = L.layerGroup().addTo(map);
+        }
+        markersLayer.clearLayers();
+    }
+
+    function updateMapMarkers() {
+        initMap();
+
+        const startIndex = (currentPage - 1) * 12;
+        const endIndex = startIndex + 12;
+        const pageProperties = filteredProperties.slice(startIndex, endIndex);
+
+        pageProperties.forEach(property => {
+            if (property.latitude && property.longitude) {
+                const marker = L.marker([property.latitude, property.longitude])
+                    .bindPopup(`<strong>${property.title || property.bhk + ' BHK'}</strong><br>${property.location}<br>₹${Number(property.price).toLocaleString()}`);
+                markersLayer.addLayer(marker);
+            }
+        });
+
+        if (pageProperties.length > 0 && pageProperties[0].latitude && pageProperties[0].longitude) {
+            map.setView([pageProperties[0].latitude, pageProperties[0].longitude], 10);
+        }
+    }
 </script>
+
 </body>
 </html>

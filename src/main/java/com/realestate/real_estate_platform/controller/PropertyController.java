@@ -65,12 +65,18 @@ public class PropertyController {
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) Integer bhk,
             @RequestParam(required = false) String facing,
-            @RequestParam(required = false) String prop_type
-
+            @RequestParam(required = false) String prop_type,
+            @RequestParam(required = false) Double lat,      // ✅ NEW
+            @RequestParam(required = false) Double lng,      // ✅ NEW
+            @RequestParam(required = false) Double radiusKm  // ✅ NEW
     ) {
-        List<PropertyDTO> results = propertyService.searchProperties(location,title , type, minPrice, maxPrice,bhk,facing, prop_type);
+        List<PropertyDTO> results = propertyService.searchProperties(
+                location, title, type, minPrice, maxPrice, bhk, facing, prop_type,
+                lat, lng, radiusKm
+        );
         return ResponseEntity.ok(results);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Optional<Property>> searchbyid(@PathVariable Long id)
