@@ -95,6 +95,7 @@
         </div>
 
         <!-- Add Property Tab -->
+        <!-- Add Property Tab -->
         <div class="tab-content" id="add-property-tab">
             <div class="section-header">
                 <h2>Add New Property</h2>
@@ -128,7 +129,7 @@
                     </div>
                 </div>
 
-                <!-- ✅ Extra fields -->
+                <!-- Extra fields -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="bhk">BHK</label>
@@ -170,13 +171,23 @@
                         <option value="SALE">Sale</option>
                     </select>
                 </div>
-                <!-- ✅ End extra fields -->
+                <!-- End extra fields -->
 
                 <div class="form-group">
                     <label for="images">Property Images</label>
                     <input type="file" id="images" name="images" multiple accept="image/*">
                     <small class="form-help">Select multiple images (max 10MB each)</small>
                 </div>
+
+                <!-- Leaflet Map -->
+                <div class="form-group">
+                    <label>Select Property Location on Map</label>
+                    <div id="map" style="height: 300px; margin-bottom: 10px;"></div>
+                </div>
+
+                <!-- Hidden fields for latitude and longitude -->
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
 
                 <button type="submit" class="btn btn-primary">
                     <span class="btn-text">Add Property</span>
@@ -186,9 +197,59 @@
                 </button>
             </form>
         </div>
-    </div>
 
-    <!-- Property Edit Modal -->
+        <!-- Leaflet CSS & JS -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+        <script>
+            let map, marker;
+
+            function initializeMap() {
+                map = L.map('map').setView([10.7905, 78.7047], 13); // Default Kovilpatti
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                marker = null;
+
+                map.on('click', function(e) {
+                    const { lat, lng } = e.latlng;
+
+                    if (marker) map.removeLayer(marker);
+                    marker = L.marker([lat, lng]).addTo(map);
+
+                    document.getElementById('latitude').value = lat;
+                    document.getElementById('longitude').value = lng;
+                });
+            }
+
+            function switchTab(tabName) {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+
+                // ✅ Fix Leaflet rendering if Add Property tab is shown
+                if (tabName === 'add-property' && map) {
+                    setTimeout(() => map.invalidateSize(), 100);
+                }
+            }
+
+            // Initialize everything on DOMContentLoaded
+            document.addEventListener('DOMContentLoaded', () => {
+                initializeMap();
+
+                const tabButtons = document.querySelectorAll('.tab-button');
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => switchTab(button.dataset.tab));
+                });
+            });
+        </script>
+
+
+        <!-- Property Edit Modal -->
     <div class="modal" id="editPropertyModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -349,6 +410,15 @@
         const form = event.target;
         const formData = new FormData();
 
+        // Read latitude and longitude from hidden fields
+        const latitude = parseFloat(document.getElementById('latitude').value);
+        const longitude = parseFloat(document.getElementById('longitude').value);
+
+        if (isNaN(latitude) || isNaN(longitude)) {
+            alert('Please select the property location on the map.');
+            return;
+        }
+
         // Property object as JSON blob
         const property = {
             title: form.title.value,
@@ -360,7 +430,9 @@
             facing: form.facing.value,
             prop_type: form.prop_type.value,
             sqft: parseInt(form.sqft.value),
-            type: form.type.value
+            type: form.type.value,
+            latitude: latitude,
+            longitude: longitude
         };
 
         formData.append("property", new Blob([JSON.stringify(property)], { type: "application/json" }));
@@ -371,10 +443,15 @@
             formData.append("images", files[i]);
         }
 
-        await makeRequest('/properties', 'POST', formData, true, true); // ✅ use multipart
+        // Send request (multipart/form-data)
+        await makeRequest('/properties', 'POST', formData, true, true);
 
         showMessage('Property added successfully!', 'success');
         form.reset();
+        // Reset marker
+        if (marker) map.removeLayer(marker);
+        document.getElementById('latitude').value = '';
+        document.getElementById('longitude').value = '';
         loadUserProperties();
         switchTab('properties');
 
@@ -386,6 +463,7 @@
         submitBtn.disabled = false;
     }
 }
+
 
            async function handleSavePortfolio(event) {
             event.preventDefault();
