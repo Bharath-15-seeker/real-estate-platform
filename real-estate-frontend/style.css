@@ -74,6 +74,120 @@ body {
     align-items: center;
 }
 
+
+/* === Portfolio Grid Layout === */
+.portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+/* === Portfolio Card === */
+.portfolio-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    padding: 1rem;
+}
+
+.portfolio-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+/* === Header Section (DP + Title + Category) === */
+.portfolio-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.portfolio-dp {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e0e0e0;
+}
+
+.portfolio-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.portfolio-category {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #007bff;
+    margin-left: auto;
+}
+
+/* === Description === */
+.portfolio-description {
+    font-size: 0.95rem;
+    color: #555;
+    margin-bottom: 0.75rem;
+}
+
+/* === Portfolio Details === */
+.portfolio-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    color: #666;
+}
+
+.portfolio-details i {
+    margin-right: 6px;
+    color: #007bff;
+}
+
+/* === Work Images Section === */
+.portfolio-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.portfolio-images img {
+    width: 70px;
+    height: 70px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+    transition: transform 0.2s;
+}
+
+.portfolio-images img:hover {
+    transform: scale(1.05);
+}
+
+.no-image {
+    font-size: 0.9rem;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80px;
+    width: 100%;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+}
+
+/* === Section Headers === */
+.section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
 /* Buttons */
 .btn {
     display: inline-block;

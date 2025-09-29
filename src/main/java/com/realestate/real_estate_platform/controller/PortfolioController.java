@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -57,6 +58,15 @@ public class PortfolioController {
         portfolioService.createPortfolio(portfolio, dp, images);
 
         return "Portfolio posted successfully";
+    }
+
+    @DeleteMapping("/{portfolioId}")
+
+    public ResponseEntity<String> deleteProperty(@PathVariable Long portfolioId,
+                                                 Authentication authentication) {
+        String email = authentication.getName();
+        portfolioService.deletePortfolio(portfolioId, email);
+        return ResponseEntity.ok("Property deleted successfully");
     }
 
 

@@ -8,213 +8,211 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <a href="index.html">
-                    <i class="fas fa-home"></i>
-                    PropertyHub
-                </a>
-            </div>
-            <div class="nav-menu">
-                <a href="properties.html" class="nav-link">Browse Properties</a>
-                <a href="portfolios.html" class="nav-link active">Browse Portfolios</a>
-                <div class="auth-buttons" id="authButtons">
-                    <a href="login.html" class="btn btn-outline">Login</a>
-                    <a href="register.html" class="btn btn-primary">Register</a>
-                </div>
-                <div class="user-menu" id="userMenu" style="display: none;">
-                    <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
-                    <button class="btn btn-outline" onclick="logout()">Logout</button>
-                </div>
-            </div>
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo">
+            <a href="index.html">
+                <i class="fas fa-home"></i>
+                PropertyHub
+            </a>
         </div>
-    </nav>
-
-    <!-- Portfolios Header -->
-    <div class="page-header">
-        <div class="container">
-            <h1>Browse Portfolios</h1>
-            <p>Connect with experienced real estate professionals</p>
-        </div>
-    </div>
-
-    <!-- Search and Filter -->
-    <div class="search-section">
-        <div class="container">
-            <div class="search-form">
-                <div class="search-input-group">
-                    <input type="text" id="searchInput" placeholder="Search by name or expertise...">
-                    <button class="btn btn-primary" onclick="searchPortfolios()">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                </div>
-                
-                <div class="filter-controls">
-                    <select id="sortBy">
-                        <option value="experience">Most Experienced</option>
-                        <option value="name">Name A-Z</option>
-                        <option value="newest">Newest First</option>
-                    </select>
-                </div>
+        <div class="nav-menu">
+            <a href="properties.html" class="nav-link">Browse Properties</a>
+            <a href="portfolios.html" class="nav-link active">Browse Portfolios</a>
+            <div class="auth-buttons" id="authButtons">
+                <a href="login.html" class="btn btn-outline">Login</a>
+                <a href="register.html" class="btn btn-primary">Register</a>
+            </div>
+            <div class="user-menu" id="userMenu" style="display: none;">
+                <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
+                <button class="btn btn-outline" onclick="logout()">Logout</button>
             </div>
         </div>
     </div>
+</nav>
 
-    <!-- Portfolios Grid -->
+<!-- Portfolios Header -->
+<div class="page-header">
     <div class="container">
-        <div class="loading" id="portfoliosLoading">
-            <i class="fas fa-spinner fa-spin"></i> Loading portfolios...
-        </div>
-        
-        <div class="portfolios-grid" id="portfoliosGrid">
-            <!-- Portfolios will be loaded here -->
+        <h1>Browse Portfolios</h1>
+        <p>Connect with experienced real estate professionals</p>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="search-section">
+    <div class="container">
+        <div class="search-form">
+            <div class="search-input-group">
+                <input type="text" id="searchInput" placeholder="Search by name or expertise...">
+                <button class="btn btn-primary" onclick="searchPortfolios()">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+
+            <div class="filter-controls">
+                <select id="sortBy">
+                    <option value="experience">Most Experienced</option>
+                    <option value="name">Name A-Z</option>
+                    <option value="newest">Newest First</option>
+                </select>
+            </div>
         </div>
     </div>
+</div>
 
-    <!-- Success/Error Messages -->
-    <div id="messageContainer" class="message-container"></div>
+<!-- Portfolios Grid -->
+<div class="container">
+    <div class="loading" id="portfoliosLoading">
+        <i class="fas fa-spinner fa-spin"></i> Loading portfolios...
+    </div>
 
-    <script src="script.js"></script>
-    <script>
-        let allPortfolios = [];
-        let filteredPortfolios = [];
+    <div class="portfolios-grid" id="portfoliosGrid">
+        <!-- Portfolios will be loaded here -->
+    </div>
+</div>
 
-        document.addEventListener('DOMContentLoaded', function() {
-            updateNavigation();
-            loadPortfolios();
-            
-            // Event listeners
-            document.getElementById('searchInput').addEventListener('input', searchPortfolios);
-            document.getElementById('sortBy').addEventListener('change', sortPortfolios);
-        });
+<!-- Success/Error Messages -->
+<div id="messageContainer" class="message-container"></div>
 
-        async function loadPortfolios() {
-            const loadingElement = document.getElementById('portfoliosLoading');
-            const portfoliosGrid = document.getElementById('portfoliosGrid');
-            
-            try {
-                const portfolios = await makeRequest('/portfolio/search', 'GET', null, false);
-                
-                loadingElement.style.display = 'none';
-                allPortfolios = portfolios;
-                filteredPortfolios = [...portfolios];
-                
-                if (portfolios.length === 0) {
-                    portfoliosGrid.innerHTML = '<div class="empty-state">No portfolios found</div>';
-                    return;
-                }
-                
-                displayPortfolios();
-                
-            } catch (error) {
-                loadingElement.style.display = 'none';
-                portfoliosGrid.innerHTML = '<div class="error-state">Failed to load portfolios</div>';
-                showMessage('Failed to load portfolios: ' + error.message, 'error');
+<script src="script.js"></script>
+<script>
+    let allPortfolios = [];
+    let filteredPortfolios = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateNavigation();
+        loadPortfolios();
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', searchPortfolios);
+        document.getElementById('sortBy').addEventListener('change', sortPortfolios);
+    });
+
+    async function loadPortfolios() {
+        const loadingElement = document.getElementById('portfoliosLoading');
+        const portfoliosGrid = document.getElementById('portfoliosGrid');
+
+        try {
+            const portfolios = await makeRequest('/portfolio/search', 'GET', null, false);
+
+            loadingElement.style.display = 'none';
+            allPortfolios = portfolios;
+            filteredPortfolios = [...portfolios];
+
+            if (portfolios.length === 0) {
+                portfoliosGrid.innerHTML = '<div class="empty-state">No portfolios found</div>';
+                return;
             }
+
+            displayPortfolios();
+
+        } catch (error) {
+            loadingElement.style.display = 'none';
+            portfoliosGrid.innerHTML = '<div class="error-state">Failed to load portfolios</div>';
+            showMessage('Failed to load portfolios: ' + error.message, 'error');
         }
+    }
 
-        function displayPortfolios() {
-    const portfoliosGrid = document.getElementById('portfoliosGrid');
+    function displayPortfolios() {
+        const portfoliosGrid = document.getElementById('portfoliosGrid');
 
-    portfoliosGrid.innerHTML = filteredPortfolios.map(portfolio => {
-        const roundedRating = Math.round(portfolio.rating || 0);
-        const stars = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
+        portfoliosGrid.innerHTML = filteredPortfolios.map(portfolio => {
+            // --- REMOVED: average rating calculation and variables ---
+            return `
+            <div class="portfolio-card" onclick="viewPortfolio(${portfolio.id})">
+                <div class="portfolio-header">
+                    <div class="portfolio-avatar">
+                        ${portfolio.dp
+                            ? `<img src="${getImageUrl(portfolio.dp)}" alt="${portfolio.title}" class="avatar-img">`
+                            : `<i class="fas fa-user"></i>`}
+                    </div>
 
-        return `
-        <div class="portfolio-card" onclick="viewPortfolio(${portfolio.id})">
-            <div class="portfolio-header">
-                <div class="portfolio-avatar">
-                    ${portfolio.dp
-                        ? `<img src="${getImageUrl(portfolio.dp)}" alt="${portfolio.title}" class="avatar-img">`
-                        : `<i class="fas fa-user"></i>`}
+                    <div class="portfolio-info">
+                        <h3>${portfolio.title || 'Untitled Portfolio'}</h3>
+                        <p class="portfolio-category">
+                            <i class="fas fa-briefcase"></i>
+                            ${portfolio.category || 'Uncategorized'}
+                        </p>
+                        <!-- REMOVED: portfolio-rating div -->
+                    </div>
                 </div>
 
-                <div class="portfolio-info">
-                    <h3>${portfolio.title || 'Untitled Portfolio'}</h3>
-                    <p class="portfolio-category">
-                        <i class="fas fa-briefcase"></i>
-                        ${portfolio.category || 'Uncategorized'}
+                <div class="portfolio-content">
+                    <p class="portfolio-description">
+                        ${portfolio.description
+                            ? portfolio.description.substring(0, 150) + (portfolio.description.length > 150 ? '...' : '')
+                            : 'No description available'}
                     </p>
-                    <div class="portfolio-rating" style="color:#e6b800; font-size:14px; margin-top:4px;">
-                        ${stars} (${portfolio.rating ? portfolio.rating.toFixed(1) : '0.0'})
+
+                    <div class="portfolio-actions">
+                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); viewPortfolio(${portfolio.id})">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
                     </div>
                 </div>
             </div>
-
-            <div class="portfolio-content">
-                <p class="portfolio-description">
-                    ${portfolio.description
-                        ? portfolio.description.substring(0, 150) + (portfolio.description.length > 150 ? '...' : '')
-                        : 'No description available'}
-                </p>
-
-                <div class="portfolio-actions">
-                    <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); viewPortfolio(${portfolio.id})">
-                        <i class="fas fa-eye"></i> View Details
-                    </button>
-                </div>
-            </div>
-        </div>
-        `;
-    }).join('');
-}
-
-
-
-        function searchPortfolios() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
-            if (searchTerm.trim() === '') {
-                filteredPortfolios = [...allPortfolios];
-            } else {
-                filteredPortfolios = allPortfolios.filter(portfolio =>
-                    portfolio.name.toLowerCase().includes(searchTerm) ||
-                    (portfolio.bio && portfolio.bio.toLowerCase().includes(searchTerm))
-                );
-            }
-            
-            displayPortfolios();
-        }
-
-        function searchPortfolios() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-
-    if (searchTerm.trim() === '') {
-        filteredPortfolios = [...allPortfolios];
-    } else {
-        filteredPortfolios = allPortfolios.filter(portfolio =>
-            (portfolio.title && portfolio.title.toLowerCase().includes(searchTerm)) ||
-            (portfolio.description && portfolio.description.toLowerCase().includes(searchTerm)) ||
-            (portfolio.category && portfolio.category.toLowerCase().includes(searchTerm))
-        );
+            `;
+        }).join('');
     }
 
-    displayPortfolios();
-}
+    function sortPortfolios() {
+        // Placeholder for sorting logic
+        const sortBy = document.getElementById('sortBy').value;
 
-
-        function viewPortfolio(portfolioId) {
-    window.location.href = `portfolio-detail.html?id=${portfolioId}`;
-}
-
-
-        async function contactAgent(userId) {
-            const message = prompt('Enter your message:');
-            if (!message) return;
-            
-            try {
-                await makeRequest('/contact', 'POST', {
-                    recipientId: userId,
-                    message: message
-                });
-                
-                showMessage('Message sent successfully!', 'success');
-            } catch (error) {
-                showMessage('Failed to send message: ' + error.message, 'error');
-            }
+        if (sortBy === 'experience') {
+            filteredPortfolios.sort((a, b) => (b.year_of_exp || 0) - (a.year_of_exp || 0));
+        } else if (sortBy === 'name') {
+            filteredPortfolios.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        } else if (sortBy === 'newest') {
+            // Assuming 'newest' means sorting by a creation timestamp,
+            // but since no timestamp is available here, it defaults to loaded order.
+            // Replace with actual date comparison if a timestamp field is added.
+            filteredPortfolios = [...allPortfolios];
         }
-    </script>
+
+        displayPortfolios();
+    }
+
+    function searchPortfolios() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+        if (searchTerm.trim() === '') {
+            filteredPortfolios = [...allPortfolios];
+        } else {
+            filteredPortfolios = allPortfolios.filter(portfolio =>
+                (portfolio.title && portfolio.title.toLowerCase().includes(searchTerm)) ||
+                (portfolio.description && portfolio.description.toLowerCase().includes(searchTerm)) ||
+                (portfolio.category && portfolio.category.toLowerCase().includes(searchTerm))
+            );
+        }
+
+        // Apply current sort filter after searching
+        sortPortfolios();
+    }
+
+
+    function viewPortfolio(portfolioId) {
+        window.location.href = `portfolio-detail.html?id=${portfolioId}`;
+    }
+
+
+    async function contactAgent(userId) {
+        const message = prompt('Enter your message:');
+        if (!message) return;
+
+        try {
+            await makeRequest('/contact', 'POST', {
+                recipientId: userId,
+                message: message
+            });
+
+            showMessage('Message sent successfully!', 'success');
+        } catch (error) {
+            showMessage('Failed to send message: ' + error.message, 'error');
+        }
+    }
+</script>
 </body>
 </html>

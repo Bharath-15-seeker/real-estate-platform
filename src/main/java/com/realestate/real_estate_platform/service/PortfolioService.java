@@ -4,10 +4,13 @@ import com.realestate.real_estate_platform.dto.PortfolioDTO;
 import com.realestate.real_estate_platform.entity.Portfolio;
 import com.realestate.real_estate_platform.entity.Property;
 import com.realestate.real_estate_platform.entity.User;
+import com.realestate.real_estate_platform.repositories.ContactRepository;
 import com.realestate.real_estate_platform.repositories.PortfolioRepository;
 import com.realestate.real_estate_platform.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +26,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class PortfolioService {
+
+    private final ContactRepository contactRepository;
 
     private final UserRepository userRepository;
     private final PortfolioRepository portfolioRepo;
@@ -117,5 +122,18 @@ public class PortfolioService {
 
     public Optional<Portfolio> getbyportfolioId(Long id) {
         return portfolioRepo.findById(id);
+    }
+
+    @Transactional
+    public void deletePortfolio(Long id, String sellerEmail) {
+        Portfolio portfolio = portfolioRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Portfolio not found"));
+
+        if (!portfolio.getOwner().getEmail().equals(sellerEmail)) {
+            throw new AccessDeniedException("You are not the authorized person to delete");
+        }
+
+        contactRepository.deleteByPortfolioId(id);
+        portfolioRepo.delete(portfolio);
     }
 }
