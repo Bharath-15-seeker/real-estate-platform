@@ -1,13 +1,16 @@
 package com.realestate.real_estate_platform.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.realestate.real_estate_platform.dto.PropertyDTO;
 import com.realestate.real_estate_platform.entity.Property;
 import com.realestate.real_estate_platform.entity.PropertyType;
 import com.realestate.real_estate_platform.entity.User;
 import com.realestate.real_estate_platform.service.PropertyService;
 import com.realestate.real_estate_platform.repositories.UserRepository;
+import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +35,6 @@ public class PropertyController {
 
     // 🔼 Post a new property (only for authenticated users)
     @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE })
-
     public String createProperty(
             @RequestPart("property") Property property,
             @RequestPart(value = "images", required = false) MultipartFile[] images,
@@ -66,9 +69,9 @@ public class PropertyController {
             @RequestParam(required = false) Integer bhk,
             @RequestParam(required = false) String facing,
             @RequestParam(required = false) String prop_type,
-            @RequestParam(required = false) Double lat,      // ✅ NEW
-            @RequestParam(required = false) Double lng,      // ✅ NEW
-            @RequestParam(required = false) Double radiusKm  // ✅ NEW
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lng,
+            @RequestParam(required = false) Double radiusKm
     ) {
         List<PropertyDTO> results = propertyService.searchProperties(
                 location, title, type, minPrice, maxPrice, bhk, facing, prop_type,
@@ -87,25 +90,51 @@ public class PropertyController {
 
     // PropertyController.java
     @GetMapping("/my-properties")
-
     public ResponseEntity<List<Property>> getMyProperties(Authentication authentication) {
         String email = authentication.getName();
         return ResponseEntity.ok(propertyService.getPropertiesByOwner(email));
     }
 
-//    @PostMapping("/{propertyId}/images")
-//    public ResponseEntity<String> uploadImage(@PathVariable Long propertyId,
-//                                              @RequestParam("file") MultipartFile file) throws IOException {
-//        String message = imageService.uploadImage(propertyId, file);
-//        return ResponseEntity.ok(message);
-//    }
 
-    @PutMapping("/{propertyId}")
-    public ResponseEntity<Property> updateProperty(@PathVariable Long propertyId,
-                                                   @RequestBody Property updatedProperty,
-                                                   Authentication authentication) {
-        String email = authentication.getName();
-        return ResponseEntity.ok(propertyService.updateProperty(propertyId, updatedProperty, email));
+    @PutMapping("/{id}") // ✅ Path variable fixed to match method parameter 'id'
+    public ResponseEntity<Property> updateProperty(
+            @PathVariable Long id,
+            @RequestPart("property") Property updatedData, // JSON string for property data
+            @RequestPart(value = "images", required = false) MultipartFile[] newImages, // New images
+            @AuthenticationPrincipal String sellerEmail // Assuming security provides the user's email
+    ) {
+        try {
+
+            System.out.println("Property JSON received: [" + updatedData + "]"); // <-- ADD THIS
+
+
+
+            // Extract the imagesToDelete list from the Property object
+            List<String> imagesToDelete = updatedData.getImagesToDelete();
+            // Clear the imagesToDelete field from the Property object to prevent database conflicts
+            updatedData.setImagesToDelete(null);
+
+            Property updatedProperty = propertyService.updatePropertyWithImages(
+                    id,
+                    updatedData,
+                    newImages,
+                    imagesToDelete,
+                    sellerEmail
+            );
+
+            return new ResponseEntity<>(updatedProperty, HttpStatus.OK);
+
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Property not found")) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND); // HTTP 404
+            }
+            if (e instanceof AccessDeniedException) { // If using the Spring Security AccessDeniedException
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN); // HTTP 403
+            }
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     // 👀 Get all properties
@@ -122,13 +151,10 @@ public class PropertyController {
     }
 
     @DeleteMapping("/{propertyId}")
-
     public ResponseEntity<String> deleteProperty(@PathVariable Long propertyId,
                                                  Authentication authentication) {
         String email = authentication.getName();
         propertyService.deleteProperty(propertyId, email);
         return ResponseEntity.ok("Property deleted successfully");
     }
-
-
 }

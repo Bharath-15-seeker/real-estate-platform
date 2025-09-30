@@ -1,7 +1,5 @@
 package com.realestate.real_estate_platform.service;
 
-
-
 import com.realestate.real_estate_platform.dto.PropertyDTO;
 import com.realestate.real_estate_platform.entity.Prop_type;
 import com.realestate.real_estate_platform.entity.Property;
@@ -12,7 +10,7 @@ import com.realestate.real_estate_platform.repositories.PropertyRepository;
 import com.realestate.real_estate_platform.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;  // ✅ correct
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -20,6 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +39,35 @@ public class PropertyService {
     @Value("${file.upload-dir}")
     private String uploadDir;
 
+    // --- Helper method to manage file creation (reused from createProperty) ---
+    private String saveFile(MultipartFile file) throws IOException {
+        File uploadPath = new File(uploadDir);
+        if (!uploadPath.exists()) {
+            uploadPath.mkdirs();
+        }
+
+        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        File destinationFile = new File(uploadPath, filename);
+
+        file.transferTo(destinationFile);
+        // Returns the relative path used by the frontend
+        return "/uploads/" + filename;
+    }
+
+    // --- Helper method to delete file ---
+    private void deleteFile(String urlPath) throws IOException {
+        // The URL path is expected to be "/uploads/filename.jpg"
+        // We need to extract just "filename.jpg" and prepend the absolute uploadDir.
+        if (urlPath == null || !urlPath.startsWith("/uploads/")) return;
+
+        String filename = urlPath.substring("/uploads/".length());
+        Path filePath = Path.of(uploadDir, filename);
+
+        if (Files.exists(filePath)) {
+            Files.delete(filePath);
+        }
+    }
+
 
     public void createProperty(Property property, MultipartFile[] images) {
         property.setPostedAt(LocalDateTime.now());
@@ -46,23 +75,13 @@ public class PropertyService {
         List<String> imagePaths = new ArrayList<>();
 
         if (images != null) {
-            // Ensure upload directory exists
-            File uploadPath = new File(uploadDir);
-            if (!uploadPath.exists()) {
-                uploadPath.mkdirs();
-            }
-
             for (MultipartFile image : images) {
                 try {
-                    String filename = UUID.randomUUID() + "_" + image.getOriginalFilename();
-                    File destinationFile = new File(uploadPath, filename);
-
-                    image.transferTo(destinationFile);
-
-                    // Store relative path (for frontend access)
-                    imagePaths.add("/uploads/" + filename);
+                    String path = saveFile(image);
+                    imagePaths.add(path);
                 } catch (IOException e) {
                     e.printStackTrace();
+                    // Consider throwing a custom exception here
                 }
             }
         }
@@ -71,6 +90,8 @@ public class PropertyService {
         propertyRepo.save(property);
     }
 
+
+    // Removed redundant updateProperty method. The combined one is below.
 
     public List<Property> getByType(PropertyType type) {
         return propertyRepo.findByType(type);
@@ -87,31 +108,80 @@ public class PropertyService {
         return propertyRepo.findByOwner(seller);
     }
 
-    public Property updateProperty(Long id, Property updatedData, String sellerEmail) {
+    // ✅ CORRECTED AND CONSOLIDATED UPDATE METHOD
+    public Property updatePropertyWithImages(
+            Long id,
+            Property updatedData,
+            MultipartFile[] newImages,
+            List<String> imagesToDelete, // The keys/URLs to delete
+            String sellerEmail
+    ) {
+        // 1. Fetch Property and Authorization Check
         Property property = propertyRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Property not found"));
 
-        if (!property.getOwner().getEmail().equals(sellerEmail)) {
+        if (property.getOwner() == null) {
+            throw new AccessDeniedException("Property owner is missing");
+        }
+
+        String ownerEmail = property.getOwner().getEmail();
+        // ✅ Ensure sellerEmail matches the stored owner email exactly
+        if (!ownerEmail.trim().equalsIgnoreCase(sellerEmail.trim())) {
             throw new AccessDeniedException("You are not the owner of this property");
         }
 
-       // property.setTitle(updatedData.getTitle());
+        // 2. Update ALL non-image fields
+        property.setTitle(updatedData.getTitle());
         property.setDescription(updatedData.getDescription());
         property.setLocation(updatedData.getLocation());
         property.setPrice(updatedData.getPrice());
         property.setType(updatedData.getType());
+        property.setAddress(updatedData.getAddress());   // ✅ fixed lowercase field
+        property.setBhk(updatedData.getBhk());
+        property.setSqft(updatedData.getSqft());
+        property.setFacing(updatedData.getFacing());
+        property.setProp_type(updatedData.getProp_type());
+        property.setLatitude(updatedData.getLatitude());
+        property.setLongitude(updatedData.getLongitude());
+
+        // 3. Handle Image Deletions
+        List<String> currentImageUrls = property.getImageUrls() != null ? property.getImageUrls() : new ArrayList<>();
+
+        if (imagesToDelete != null && !imagesToDelete.isEmpty()) {
+            for (String urlKey : imagesToDelete) {
+                try {
+                    deleteFile(urlKey); // delete from storage
+                } catch (IOException e) {
+                    System.err.println("Failed to delete old image: " + urlKey + ". Reason: " + e.getMessage());
+                    // continue even if delete fails
+                }
+                currentImageUrls.remove(urlKey); // remove from DB list
+            }
+        }
+        property.setImageUrls(currentImageUrls);
+
+        // 4. Handle New Image Uploads
+        if (newImages != null && newImages.length > 0) {
+            for (MultipartFile file : newImages) {
+                if (!file.isEmpty()) {
+                    try {
+                        String newUrlKey = saveFile(file); // save to storage
+                        currentImageUrls.add(newUrlKey);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.err.println("Failed to save new image: " + file.getOriginalFilename());
+                    }
+                }
+            }
+        }
+
+        // 5. ✅ Save final property to DB
         return propertyRepo.save(property);
     }
-
 
     public List<Property> getAllProperties() {
         return propertyRepo.findAll();
     }
-
-//    public List<PropertyDTO> searchProperties(String location, String type, Double minPrice, Double maxPrice) {
-//        List<Property> properties = propertyRepo.search(location, type, minPrice, maxPrice);
-//        return properties.stream().map(PropertyDTO::from).collect(Collectors.toList());
-//    }
 
     public List<PropertyDTO> searchProperties(
             String location, String title, String typeStr,
@@ -141,7 +211,7 @@ public class PropertyService {
                 location, title, type, minPrice, maxPrice, bhk, facing, prop_type
         );
 
-        // ✅ If lat/lng provided, filter properties by distance
+        // If lat/lng provided, filter properties by distance
         if (lat != null && lng != null && radiusKm != null) {
             properties = properties.stream()
                     .filter(p -> p.getLatitude() != null && p.getLongitude() != null)
@@ -155,7 +225,7 @@ public class PropertyService {
         return properties.stream().map(PropertyDTO::from).toList();
     }
 
-    // ✅ Haversine formula for distance (km)
+    // Haversine formula for distance (km)
     private double distanceKm(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // Earth radius in km
         double dLat = Math.toRadians(lat2 - lat1);
@@ -166,7 +236,6 @@ public class PropertyService {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return R * c;
     }
-
 
 
     public List<Property> getPropertiesByUser(Long userId) {
@@ -182,6 +251,17 @@ public class PropertyService {
             throw new AccessDeniedException("You are not the owner of this property");
         }
 
+        // Delete all associated files before deleting the entity
+        if (property.getImageUrls() != null) {
+            for(String urlKey : property.getImageUrls()) {
+                try {
+                    deleteFile(urlKey);
+                } catch (IOException e) {
+                    System.err.println("Failed to delete property file during deletion: " + urlKey);
+                }
+            }
+        }
+
         contactRepository.deleteByPropertyId(id);
         propertyRepo.delete(property);
     }
@@ -191,4 +271,3 @@ public class PropertyService {
         return propertyRepo.findById(id);
     }
 }
-

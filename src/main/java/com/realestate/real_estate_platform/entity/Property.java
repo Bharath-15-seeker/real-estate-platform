@@ -26,9 +26,12 @@ public class Property {
     private String location;
     private int bhk;
 
+    @Transient // Important: Tells JPA to ignore this field in the database
+    private List<String> imagesToDelete;
+
     private String title;
     private String facing;
-    private String Address;
+    private String address;
     private Double sqft;
 
     private Double price;
