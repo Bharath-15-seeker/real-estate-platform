@@ -113,7 +113,7 @@ public class PropertyService {
             Long id,
             Property updatedData,
             MultipartFile[] newImages,
-            List<String> imagesToDelete, // The keys/URLs to delete
+            List<String> imagesToDelete,
             String sellerEmail
     ) {
         // 1. Fetch Property and Authorization Check
@@ -124,8 +124,11 @@ public class PropertyService {
             throw new AccessDeniedException("Property owner is missing");
         }
 
+        if (sellerEmail == null || sellerEmail.trim().isEmpty()) {
+            throw new AccessDeniedException("Seller email is required");
+        }
+
         String ownerEmail = property.getOwner().getEmail();
-        // ✅ Ensure sellerEmail matches the stored owner email exactly
         if (!ownerEmail.trim().equalsIgnoreCase(sellerEmail.trim())) {
             throw new AccessDeniedException("You are not the owner of this property");
         }
@@ -136,7 +139,7 @@ public class PropertyService {
         property.setLocation(updatedData.getLocation());
         property.setPrice(updatedData.getPrice());
         property.setType(updatedData.getType());
-        property.setAddress(updatedData.getAddress());   // ✅ fixed lowercase field
+        property.setAddress(updatedData.getAddress());
         property.setBhk(updatedData.getBhk());
         property.setSqft(updatedData.getSqft());
         property.setFacing(updatedData.getFacing());
@@ -145,19 +148,30 @@ public class PropertyService {
         property.setLongitude(updatedData.getLongitude());
 
         // 3. Handle Image Deletions
-        List<String> currentImageUrls = property.getImageUrls() != null ? property.getImageUrls() : new ArrayList<>();
+        List<String> currentImageUrls = property.getImageUrls() != null
+                ? new ArrayList<>(property.getImageUrls()) // ✅ Create new list to avoid reference issues
+                : new ArrayList<>();
+
+        // ✅ Add debug logging
+        System.out.println("Current images before deletion: " + currentImageUrls);
+        System.out.println("Images to delete in service: " + imagesToDelete);
 
         if (imagesToDelete != null && !imagesToDelete.isEmpty()) {
             for (String urlKey : imagesToDelete) {
+                System.out.println("Attempting to delete: " + urlKey);
                 try {
                     deleteFile(urlKey); // delete from storage
+                    System.out.println("File deleted from storage: " + urlKey);
                 } catch (IOException e) {
                     System.err.println("Failed to delete old image: " + urlKey + ". Reason: " + e.getMessage());
-                    // continue even if delete fails
                 }
-                currentImageUrls.remove(urlKey); // remove from DB list
+
+                boolean removed = currentImageUrls.remove(urlKey);
+                System.out.println("Removed from list: " + removed + " for " + urlKey);
             }
         }
+
+        System.out.println("Current images after deletion: " + currentImageUrls);
         property.setImageUrls(currentImageUrls);
 
         // 4. Handle New Image Uploads
@@ -165,8 +179,9 @@ public class PropertyService {
             for (MultipartFile file : newImages) {
                 if (!file.isEmpty()) {
                     try {
-                        String newUrlKey = saveFile(file); // save to storage
+                        String newUrlKey = saveFile(file);
                         currentImageUrls.add(newUrlKey);
+                        System.out.println("New image added: " + newUrlKey);
                     } catch (IOException e) {
                         e.printStackTrace();
                         System.err.println("Failed to save new image: " + file.getOriginalFilename());
@@ -175,8 +190,10 @@ public class PropertyService {
             }
         }
 
-        // 5. ✅ Save final property to DB
-        return propertyRepo.save(property);
+        // 5. Save final property to DB
+        Property savedProperty = propertyRepo.save(property);
+        System.out.println("Property saved with images: " + savedProperty.getImageUrls());
+        return savedProperty;
     }
 
     public List<Property> getAllProperties() {

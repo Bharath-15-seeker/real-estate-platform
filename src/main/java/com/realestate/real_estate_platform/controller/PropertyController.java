@@ -1,5 +1,8 @@
 package com.realestate.real_estate_platform.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.realestate.real_estate_platform.dto.PropertyDTO;
 import com.realestate.real_estate_platform.entity.Property;
@@ -96,23 +99,32 @@ public class PropertyController {
     }
 
 
-    @PutMapping("/{id}") // ✅ Path variable fixed to match method parameter 'id'
+    @PutMapping("/{id}")
     public ResponseEntity<Property> updateProperty(
             @PathVariable Long id,
-            @RequestPart("property") Property updatedData, // JSON string for property data
-            @RequestPart(value = "images", required = false) MultipartFile[] newImages, // New images
-            @AuthenticationPrincipal String sellerEmail // Assuming security provides the user's email
+            @RequestPart("property") String propertyJson,
+            @RequestPart(value = "images", required = false) MultipartFile[] newImages,
+            @RequestPart(value = "imagesToDelete", required = false) String imagesToDeleteJson,
+            @AuthenticationPrincipal UserDetails userDetails // ✅ Changed to UserDetails
     ) {
         try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-            System.out.println("Property JSON received: [" + updatedData + "]"); // <-- ADD THIS
+            System.out.println("Property JSON received: " + propertyJson);
 
+            Property updatedData = objectMapper.readValue(propertyJson, Property.class);
 
-
-            // Extract the imagesToDelete list from the Property object
             List<String> imagesToDelete = updatedData.getImagesToDelete();
-            // Clear the imagesToDelete field from the Property object to prevent database conflicts
+            System.out.println("Images to delete: " + imagesToDelete);
+            System.out.println("Images to delete size: " + (imagesToDelete != null ? imagesToDelete.size() : "null"));
+
             updatedData.setImagesToDelete(null);
+
+
+            // ✅ Get email from UserDetails
+            String sellerEmail = userDetails.getUsername(); // Username is typically the email
 
             Property updatedProperty = propertyService.updatePropertyWithImages(
                     id,
@@ -122,21 +134,26 @@ public class PropertyController {
                     sellerEmail
             );
 
-            return new ResponseEntity<>(updatedProperty, HttpStatus.OK);
+            return ResponseEntity.ok(updatedProperty);
 
+        } catch (JsonProcessingException e) {
+            System.err.println("JSON parsing error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
         } catch (RuntimeException e) {
-            if (e.getMessage().contains("Property not found")) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND); // HTTP 404
+            e.printStackTrace();
+            if (e.getMessage() != null && e.getMessage().contains("Property not found")) {
+                return ResponseEntity.notFound().build();
             }
-            if (e instanceof AccessDeniedException) { // If using the Spring Security AccessDeniedException
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN); // HTTP 403
+            if (e instanceof AccessDeniedException) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
     // 👀 Get all properties
     @GetMapping
     public ResponseEntity<List<Property>> getAllProperties() {

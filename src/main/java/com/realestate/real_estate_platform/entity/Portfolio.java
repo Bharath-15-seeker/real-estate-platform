@@ -30,6 +30,9 @@ public class Portfolio {
 
     private String dp;
 
+    @Transient // Important: Tells JPA to ignore this field in the database
+    private List<String> imagesToDelete;
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "owner_id")

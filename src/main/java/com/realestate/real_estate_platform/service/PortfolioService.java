@@ -16,6 +16,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.UUID;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -99,26 +104,153 @@ public class PortfolioService {
         }
     }
 
-    public Portfolio updatePortfolio(Long id, Portfolio updatedData, String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+    @Transactional
+    public Portfolio updatePortfolioWithImages(
+            Long id,
+            Portfolio updatedData,
+            MultipartFile[] newWorkImages,
+            MultipartFile dpImage,
+            List<String> workImagesToDelete,
+            String ownerEmail
+    ) {
+        // 1. Fetch Portfolio and Authorization Check
         Portfolio portfolio = portfolioRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Portfolio not found"));
 
-        if (!portfolio.getOwner().getId().equals(user.getId())) {
-
-            throw new RuntimeException("You are not authorized to update this portfolio.");
+        if (portfolio.getOwner() == null) {
+            throw new AccessDeniedException("Portfolio owner is missing");
         }
 
+        if (ownerEmail == null || ownerEmail.trim().isEmpty()) {
+            throw new AccessDeniedException("Owner email is required");
+        }
+
+        String portfolioOwnerEmail = portfolio.getOwner().getEmail();
+        if (!portfolioOwnerEmail.trim().equalsIgnoreCase(ownerEmail.trim())) {
+            throw new AccessDeniedException("You are not the owner of this portfolio");
+        }
+
+        // 2. Update all non-image fields
         portfolio.setTitle(updatedData.getTitle());
         portfolio.setDescription(updatedData.getDescription());
         portfolio.setCategory(updatedData.getCategory());
+        portfolio.setYear_of_exp(updatedData.getYear_of_exp());
         portfolio.setIsPublic(updatedData.getIsPublic());
 
+        // 3. Handle Work Images Deletion
+        List<String> currentWorkImages = portfolio.getWorkimages() != null
+                ? new ArrayList<>(portfolio.getWorkimages())
+                : new ArrayList<>();
 
-            return portfolioRepo.save(portfolio);
+        System.out.println("Current work images before deletion: " + currentWorkImages);
+        System.out.println("Work images to delete: " + workImagesToDelete);
+
+        if (workImagesToDelete != null && !workImagesToDelete.isEmpty()) {
+            for (String imageUrl : workImagesToDelete) {
+                System.out.println("Attempting to delete work image: " + imageUrl);
+                try {
+                    deleteFile(imageUrl);
+                    System.out.println("File deleted from storage: " + imageUrl);
+                } catch (IOException e) {
+                    System.err.println("Failed to delete work image: " + imageUrl + ". Reason: " + e.getMessage());
+                }
+
+                boolean removed = currentWorkImages.remove(imageUrl);
+                System.out.println("Removed from work images list: " + removed + " for " + imageUrl);
+            }
+        }
+
+        System.out.println("Current work images after deletion: " + currentWorkImages);
+        portfolio.setWorkimages(currentWorkImages);
+
+        // 4. Handle New Work Images Upload
+        if (newWorkImages != null && newWorkImages.length > 0) {
+            for (MultipartFile file : newWorkImages) {
+                if (!file.isEmpty()) {
+                    try {
+                        String newImageUrl = saveFile(file);
+                        currentWorkImages.add(newImageUrl);
+                        System.out.println("New work image added: " + newImageUrl);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.err.println("Failed to save new work image: " + file.getOriginalFilename());
+                    }
+                }
+            }
+        }
+
+        // 5. Handle Display Picture (DP) Update
+        if (dpImage != null && !dpImage.isEmpty()) {
+            try {
+                // Delete old DP if exists
+                String oldDp = portfolio.getDp();
+                if (oldDp != null && !oldDp.isEmpty()) {
+                    try {
+                        deleteFile(oldDp);
+                        System.out.println("Old DP deleted: " + oldDp);
+                    } catch (IOException e) {
+                        System.err.println("Failed to delete old DP: " + oldDp);
+                    }
+                }
+
+                // Save new DP
+                String newDpUrl = saveFile(dpImage);
+                portfolio.setDp(newDpUrl);
+                System.out.println("New DP saved: " + newDpUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.err.println("Failed to save new DP: " + dpImage.getOriginalFilename());
+            }
+        }
+
+        // 6. Save portfolio to database
+        Portfolio savedPortfolio = portfolioRepo.save(portfolio);
+        System.out.println("Portfolio saved with work images: " + savedPortfolio.getWorkimages());
+        return savedPortfolio;
     }
+
+    private String saveFile(MultipartFile file) throws IOException {
+        // Create upload directory if it doesn't exist
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        // Generate unique filename
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename != null && originalFilename.contains(".")
+                ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                : "";
+        String uniqueFilename = UUID.randomUUID().toString() + "_" + originalFilename;
+
+        // Save file
+        Path filePath = uploadPath.resolve(uniqueFilename);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        // Return relative path
+        return "/" + uploadDir + uniqueFilename;
+    }
+
+    /**
+     * Delete file from storage
+     */
+    private void deleteFile(String fileUrl) throws IOException {
+        if (fileUrl == null || fileUrl.isEmpty()) {
+            return;
+        }
+
+        // Remove leading slash if present
+        String filePath = fileUrl.startsWith("/") ? fileUrl.substring(1) : fileUrl;
+        Path path = Paths.get(filePath);
+
+        if (Files.exists(path)) {
+            Files.delete(path);
+            System.out.println("File deleted successfully: " + filePath);
+        } else {
+            System.out.println("File not found: " + filePath);
+        }
+    }
+
 
     public Optional<Portfolio> getbyportfolioId(Long id) {
         return portfolioRepo.findById(id);
