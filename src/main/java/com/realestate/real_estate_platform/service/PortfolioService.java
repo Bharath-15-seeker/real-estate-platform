@@ -227,9 +227,11 @@ public class PortfolioService {
         Path filePath = uploadPath.resolve(uniqueFilename);
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        // Return relative path
-        return "/" + uploadDir + uniqueFilename;
+        // ✅ Ensure relative path (always starts with /uploads/)
+        String folderName = uploadPath.getFileName().toString(); // e.g. "uploads"
+        return "/" + folderName + "/" + uniqueFilename;
     }
+
 
     /**
      * Delete file from storage
