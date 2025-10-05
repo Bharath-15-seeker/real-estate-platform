@@ -24,5 +24,7 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
     List<Favorite> findByUserId(Long userId);
 
     List<Favorite> findByUser_Id(Long id);
+
+    Optional<Favorite> findByUserAndPortfolio(User user, Portfolio portfolio);
 }
 

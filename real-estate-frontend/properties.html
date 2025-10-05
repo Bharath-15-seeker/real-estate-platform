@@ -5,549 +5,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Browse Properties - PropertyHub</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link
-            rel="stylesheet"
-            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-
-    <!-- ENHANCEMENT: Leaflet Marker Cluster Plugin CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
-
-    <script
-            src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-    </script>
-
-    <!-- ENHANCEMENT: Leaflet Marker Cluster Plugin JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f8f9fa; }
 
-
-        /* Navigation */
-        .navbar {
-             background: #fff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-        }
-
-       .nav-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-      .nav-logo a {
-    text-decoration: none;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #2c3e50;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.nav-logo i {
-    color: #3498db;
-}
-
-       .nav-menu {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-        .nav-link {
-            text-decoration: none;
-            color: #6b7280;
-            font-weight: 500;
-            transition: color 0.3s ease;
-            position: relative;
-        }
-
-        .nav-link {
-    color: #555; /* normal links */
-}
-
-        .nav-link:hover {
-            color: #3b82f6;
-        }
-
-        .nav-link:hover {
-    color: #000; /* darker on hover */
-}
-
-        .nav-link.active {
-            color: #3b82f6;
-        }
-
-        .nav-link.active::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #3b82f6;
-            border-radius: 1px;
-        }
-
-        .auth-buttons, .user-menu {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-/* Buttons */
-.btn {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 500;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.95rem;
-}
-
-.btn-primary {
-    background: #3498db;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #2980b9;
-    transform: translateY(-2px);
-}
-
-.btn-outline {
-    background: transparent;
-    border: 2px solid #3498db;
-    color: #3498db;
-}
-
-.btn-outline:hover {
-    background: #3498db;
-    color: white;
-}
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Container */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-
-        /* Page Header */
-        .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 3rem 0;
-            text-align: center;
-        }
-
-
-        .page-header {
-    background: linear-gradient(135deg, #3498db, #2c3e50);
-    color: white;
-    text-align: center;
-    padding: 3rem 0;
-}
-
-.page-header h1 {
-    font-size: 3rem;
-    margin-bottom: 0.5rem;
-}
-
-.page-header p {
-    font-size: 1.1rem;
-    opacity: 0.9;
-}
-
-
-.page-header p {
-    font-size: 1rem;
-    margin-top: 8px;
-}
-        /* Search Section */
-        .search-section {
-            background: white;
-            padding: 2rem 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .search-form {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .search-input-group {
-            display: flex;
-            gap: 1rem;
-            flex: 1;
-            min-width: 300px;
-        }
-
-        .search-input-group input {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .search-input-group input:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-
-        .filter-controls select {
-            padding: 0.75rem 1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            background: white;
-            cursor: pointer;
-            transition: border-color 0.3s ease;
-        }
-
-        .filter-controls select:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #6b7280;
-            font-size: 1.125rem;
-        }
-
-        .loading i {
-            margin-right: 0.5rem;
-            color: #3b82f6;
-        }
-
-        /* Properties Grid */
-        .properties-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 2rem;
-            padding: 3rem 0;
-        }
-
-        .property-card {
-            background: white;
-            border-radius: 1rem;
-            overflow: hidden;
-            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: 1px solid #e5e7eb;
-        }
-
-        .property-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .property-image {
-            width: 100%;
-            height: 250px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .property-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-
-        .property-card:hover .property-image img {
-            transform: scale(1.05);
-        }
-
-        .no-image {
-            width: 100%;
-            height: 100%;
-            background: #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #9ca3af;
-            font-size: 3rem;
-        }
-
-        .property-info {
-            padding: 1.5rem;
-        }
-
-        .property-info h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 1rem;
-            line-height: 1.3;
-        }
-
-        .property-price {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #10b981;
-            margin-bottom: 0.75rem;
-            display: block;
-        }
-
-        .property-location {
-            color: #6b7280;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .property-location i {
-            color: #ef4444;
-        }
-
-        .property-meta {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .property-meta span {
-            background: #f3f4f6;
-            padding: 0.375rem 0.75rem;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            color: #4b5563;
-            font-weight: 500;
-        }
-
-        .property-date {
-            padding-top: 1rem;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .property-date small {
-            color: #9ca3af;
-            font-size: 0.8rem;
-        }
-
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 2rem;
-            padding: 3rem 0;
-        }
-
-        .page-info {
-            font-weight: 500;
-            color: #6b7280;
-        }
-
-        /* Empty/Error States */
-        .empty-state, .error-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #6b7280;
-            font-size: 1.125rem;
-        }
-
-        .error-state {
-            color: #ef4444;
-        }
-
-        /* Message Container */
-        .message-container {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            z-index: 1000;
-            max-width: 400px;
-        }
-
-        .message {
-            padding: 1rem 1.5rem;
-            border-radius: 0.75rem;
-            margin-bottom: 1rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            animation: slideIn 0.3s ease;
-        }
-
-        .message.success {
-            background-color: #d1fae5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
-        }
-
-        .message.error {
-            background-color: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            .nav-container {
-                padding: 1rem;
-                flex-wrap: wrap;
-            }
-
-            .nav-menu {
-                gap: 1rem;
-                flex-wrap: wrap;
-            }
-
-            .container {
-                padding: 0 1rem;
-            }
-
-            .page-header h1 {
-                font-size: 2rem;
-            }
-
-            .page-header p {
-                font-size: 1rem;
-            }
-
-            .search-form {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .search-input-group {
-                min-width: auto;
-                width: 100%;
-            }
-
-            .properties-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-                padding: 2rem 0;
-            }
-
-            .property-card {
-                margin: 0 auto;
-                max-width: 400px;
-            }
-
-            .pagination {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .message-container {
-                top: 0.5rem;
-                right: 0.5rem;
-                left: 0.5rem;
-                max-width: none;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .nav-container {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .property-info {
-                padding: 1rem;
-            }
-
-            .property-meta {
-                gap: 0.5rem;
-            }
-
-            .property-meta span {
-                font-size: 0.8rem;
-                padding: 0.25rem 0.5rem;
-            }
-        }
-
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .properties-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (min-width: 1025px) {
-            .properties-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-         /* Added top margin for the heading to look cleaner */
-         .container h2 {
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            font-size: 1.75rem;
-            color: #2c3e50;
-         }
-
-         #map {
-             width: 100%;
-             height: 400px;
-             border-radius: 1rem;
-             margin-bottom: 2rem;
-             /* Added subtle shadow to enhance aesthetics */
-             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
+        .navbar { background: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); position: sticky; top: 0; z-index: 1000; }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 1rem 20px; max-width: 1200px; margin: 0 auto; }
+        .nav-logo a { text-decoration: none; font-size: 1.5rem; font-weight: bold; color: #2c3e50; display: flex; align-items: center; gap: 0.5rem; }
+        .nav-logo i { color: #3498db; }
+        .nav-menu { display: flex; align-items: center; gap: 1rem; }
+        .nav-link { text-decoration: none; color: #555; font-weight: 500; transition: color 0.3s ease; position: relative; }
+        .nav-link:hover { color: #000; }
+        .nav-link.active { color: #3b82f6; }
+        .nav-link.active::after { content: ''; position: absolute; bottom: -8px; left: 0; right: 0; height: 2px; background: #3b82f6; border-radius: 1px; }
+        .auth-buttons, .user-menu { display: flex; gap: 0.5rem; align-items: center; }
+
+        .btn { display: inline-block; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; text-decoration: none; font-weight: 500; text-align: center; cursor: pointer; transition: all 0.3s ease; font-size: 0.95rem; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; transform: translateY(-2px); }
+        .btn-outline { background: transparent; border: 2px solid #3498db; color: #3498db; }
+        .btn-outline:hover { background: #3498db; color: white; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+        .page-header { background: linear-gradient(135deg, #3498db, #2c3e50); color: white; text-align: center; padding: 3rem 0; }
+        .page-header h1 { font-size: 3rem; margin-bottom: 0.5rem; }
+        .page-header p { font-size: 1rem; margin-top: 8px; }
+
+        .search-section { background: white; padding: 2rem 0; border-bottom: 1px solid #e5e7eb; }
+        .search-form { display: flex; gap: 2rem; align-items: center; flex-wrap: wrap; }
+        .search-input-group { display: flex; gap: 1rem; flex: 1; min-width: 300px; }
+        .search-input-group input { flex: 1; padding: 0.75rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; transition: border-color 0.3s ease; }
+        .search-input-group input:focus { outline: none; border-color: #3b82f6; }
+        .filter-controls select { padding: 0.75rem 1rem; border: 2px solid #e5e7eb; border-radius: 0.5rem; font-size: 1rem; background: white; cursor: pointer; transition: border-color 0.3s ease; }
+        .filter-controls select:focus { outline: none; border-color: #3b82f6; }
+
+        .loading { text-align: center; padding: 4rem 2rem; color: #6b7280; font-size: 1.125rem; }
+        .loading i { margin-right: 0.5rem; color: #3b82f6; }
+
+        .properties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; padding: 3rem 0; }
+        .property-card { background: white; border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; cursor: pointer; border: 1px solid #e5e7eb; position: relative; }
+        .property-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
+
+        .favorite-btn { position: absolute; top: 1rem; right: 1rem; background: rgba(255, 255, 255, 0.95); border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.25rem; cursor: pointer; transition: all 0.3s ease; z-index: 10; color: #cbd5e1; }
+        .favorite-btn:hover { background: white; transform: scale(1.1); }
+        .favorite-btn.active { color: #ef4444; }
+
+        .property-image { width: 100%; height: 250px; overflow: hidden; position: relative; }
+        .property-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+        .property-card:hover .property-image img { transform: scale(1.05); }
+        .no-image { width: 100%; height: 100%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 3rem; }
+
+        .property-info { padding: 1.5rem; }
+        .property-info h3 { font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 1rem; line-height: 1.3; }
+        .property-price { font-size: 1.5rem; font-weight: 700; color: #10b981; margin-bottom: 0.75rem; display: block; }
+        .property-location { color: #6b7280; font-size: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .property-location i { color: #ef4444; }
+        .property-meta { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .property-meta span { background: #f3f4f6; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; color: #4b5563; font-weight: 500; }
+        .property-date { padding-top: 1rem; border-top: 1px solid #e5e7eb; }
+        .property-date small { color: #9ca3af; font-size: 0.8rem; }
+
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 2rem; padding: 3rem 0; }
+        .page-info { font-weight: 500; color: #6b7280; }
+
+        .empty-state, .error-state { text-align: center; padding: 4rem 2rem; color: #6b7280; font-size: 1.125rem; }
+        .error-state { color: #ef4444; }
+
+        .message-container { position: fixed; top: 1rem; right: 1rem; z-index: 1000; max-width: 400px; }
+        .message { padding: 1rem 1.5rem; border-radius: 0.75rem; margin-bottom: 1rem; font-weight: 500; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); animation: slideIn 0.3s ease; }
+        .message.success { background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .message.error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .container h2 { margin-top: 2rem; margin-bottom: 1rem; font-size: 1.75rem; color: #2c3e50; }
+        #map { width: 100%; height: 400px; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+
+        @media (max-width: 768px) { .nav-container { padding: 1rem; flex-wrap: wrap; } .nav-menu { gap: 1rem; flex-wrap: wrap; } .container { padding: 0 1rem; } .page-header h1 { font-size: 2rem; } .search-form { flex-direction: column; gap: 1rem; } .search-input-group { min-width: auto; width: 100%; } .properties-grid { grid-template-columns: 1fr; gap: 1.5rem; padding: 2rem 0; } .property-card { margin: 0 auto; max-width: 400px; } .pagination { flex-direction: column; gap: 1rem; } }
     </style>
 </head>
 <body>
-<!-- Navigation -->
 <nav class="navbar">
     <div class="nav-container">
         <div class="nav-logo">
-            <a href="index.html">
-                <i class="fas fa-home"></i>
-                PropertyHub
-            </a>
+            <a href="index.html"><i class="fas fa-home"></i> PropertyHub</a>
         </div>
         <div class="nav-menu">
             <a href="properties.html" class="nav-link active">Browse Properties</a>
             <a href="portfolios.html" class="nav-link">Browse Portfolios</a>
+            <a href="favorites.html" class="nav-link" id="favoritesLink" style="display: none;"><i class="fas fa-heart"></i> Favorites</a>
             <div class="auth-buttons" id="authButtons">
                 <a href="login.html" class="btn btn-outline">Login</a>
                 <a href="register.html" class="btn btn-primary">Register</a>
@@ -560,7 +112,6 @@
     </div>
 </nav>
 
-<!-- Properties Header -->
 <div class="page-header">
     <div class="container">
         <h1>Browse Properties</h1>
@@ -568,7 +119,6 @@
     </div>
 </div>
 
-<!-- Search and Filter -->
 <div class="search-section">
     <div class="container">
         <div class="search-form">
@@ -590,16 +140,12 @@
     </div>
 </div>
 
-<!-- Properties Grid -->
 <div class="container">
     <div class="loading" id="propertiesLoading">
         <i class="fas fa-spinner fa-spin"></i> Loading properties...
     </div>
-    <div class="properties-grid" id="propertiesGrid">
-        <!-- Properties will be loaded here -->
-    </div>
+    <div class="properties-grid" id="propertiesGrid"></div>
 
-    <!-- Map for properties -->
     <h2>Property Locations (Clustered View)</h2>
     <div id="map"></div>
 
@@ -614,7 +160,6 @@
     </div>
 </div>
 
-<!-- Success/Error Messages -->
 <div id="messageContainer" class="message-container"></div>
 
 <script src="script.js"></script>
@@ -624,15 +169,41 @@
     let allProperties = [];
     let filteredProperties = [];
     let map;
-    // Changed markersLayer to markerCluster for improved performance and aesthetics
     let markerCluster;
+    let userFavorites = new Set();
 
-    document.addEventListener('DOMContentLoaded', function() {
-        updateNavigation();
-        loadProperties();
-        document.getElementById('searchInput').addEventListener('input', searchProperties);
-        document.getElementById('sortBy').addEventListener('change', sortProperties);
-    });
+    document.addEventListener('DOMContentLoaded', async function() {
+    updateNavigation();
+
+    if (isAuthenticated()) {
+        document.getElementById('favoritesLink').style.display = 'block';
+        await loadUserFavorites(); // ⏳ wait for favorites to load first
+    }
+
+    await loadProperties(); // then load properties, hearts will now reflect favorites
+
+    document.getElementById('searchInput').addEventListener('input', searchProperties);
+    document.getElementById('sortBy').addEventListener('change', sortProperties);
+});
+
+
+    async function loadUserFavorites() {
+    try {
+        const favorites = await makeRequest('/favorites', 'GET', null, true);
+
+        // Extract property IDs safely from nested property object
+        userFavorites = new Set(
+            favorites
+                .filter(f => f.property !== null && f.property.id)  // ensure valid
+                .map(f => Number(f.property.id))
+        );
+
+        console.log('Loaded favorites:', Array.from(userFavorites)); // ✅ now shows actual IDs
+    } catch (error) {
+        console.error('Failed to load favorites:', error);
+    }
+}
+
 
     async function loadProperties() {
         const loadingElement = document.getElementById('propertiesLoading');
@@ -647,7 +218,6 @@
 
             if (properties.length === 0) {
                 propertiesGrid.innerHTML = '<div class="empty-state">No properties found</div>';
-                // Initialize map even if no properties to set up the default view
                 initMap();
                 return;
             }
@@ -658,7 +228,7 @@
             loadingElement.style.display = 'none';
             propertiesGrid.innerHTML = '<div class="error-state">Failed to load properties</div>';
             showMessage('Failed to load properties: ' + error.message, 'error');
-            initMap(); // Initialize map on error too
+            initMap();
         }
     }
 
@@ -669,26 +239,33 @@
         const pageProperties = filteredProperties.slice(startIndex, endIndex);
 
         propertiesGrid.innerHTML = pageProperties.map(property => `
-            <div class="property-card" onclick="viewProperty(${property.id})">
-                <div class="property-image">
-                    ${property.imageUrls && property.imageUrls.length > 0
-                        ? `<img src="${getImageUrl(property.imageUrls[0])}" alt="${property.title || (property.bhk + ' BHK in ' + property.location)}">`
-                        : '<div class="no-image"><i class="fas fa-image"></i></div>'
-                    }
-                </div>
-                <div class="property-info">
-                    <h3>${property.title || property.bhk + ' BHK in ' + property.location}</h3>
-                    <span class="property-price">₹${Number(property.price).toLocaleString()}</span>
-                    <div class="property-location">
-                        <i class="fas fa-map-marker-alt"></i> ${property.location}
+            <div class="property-card">
+                ${isAuthenticated() ? `
+                <button class="favorite-btn ${userFavorites.has(property.id) ? 'active' : ''}"
+                        onclick="event.stopPropagation(); toggleFavorite(${property.id}, this)">
+                    <i class="fas fa-heart"></i>
+                </button>` : ''}
+                <div onclick="viewProperty(${property.id})">
+                    <div class="property-image">
+                        ${property.imageUrls && property.imageUrls.length > 0
+                            ? `<img src="${getImageUrl(property.imageUrls[0])}" alt="${property.title || (property.bhk + ' BHK in ' + property.location)}">`
+                            : '<div class="no-image"><i class="fas fa-image"></i></div>'
+                        }
                     </div>
-                    <div class="property-meta">
-                        <span><strong>${property.bhk || '-'} BHK</strong></span>
-                        <span>${property.prop_type || 'Property'}</span>
-                        <span>${property.type || '-'}</span>
-                    </div>
-                    <div class="property-date">
-                        <small>Listed on ${new Date(property.postedAt || Date.now()).toLocaleDateString()}</small>
+                    <div class="property-info">
+                        <h3>${property.title || property.bhk + ' BHK in ' + property.location}</h3>
+                        <span class="property-price">₹${Number(property.price).toLocaleString()}</span>
+                        <div class="property-location">
+                            <i class="fas fa-map-marker-alt"></i> ${property.location}
+                        </div>
+                        <div class="property-meta">
+                            <span><strong>${property.bhk || '-'} BHK</strong></span>
+                            <span>${property.prop_type || 'Property'}</span>
+                            <span>${property.type || '-'}</span>
+                        </div>
+                        <div class="property-date">
+                            <small>Listed on ${new Date(property.postedAt || Date.now()).toLocaleDateString()}</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -696,6 +273,33 @@
 
         updatePagination();
         updateMapMarkers();
+    }
+
+    async function toggleFavorite(propertyId, button) {
+        if (!isAuthenticated()) {
+            showMessage('Please login to save favorites', 'error');
+            return;
+        }
+
+        try {
+            if (userFavorites.has(propertyId)) {
+                const favorites = await makeRequest('/favorites', 'GET', null, true);
+                const favorite = favorites.find(f => f.property && f.property.id === propertyId);
+                if (favorite) {
+                    await makeRequest(`/favorites/${favorite.id}`, 'DELETE', null, true);
+                    userFavorites.delete(propertyId);
+                    button.classList.remove('active');
+                    showMessage('Removed from favorites', 'success');
+                }
+            } else {
+                await makeRequest(`/favorites/${propertyId}`, 'POST', null, true);
+                userFavorites.add(propertyId);
+                button.classList.add('active');
+                showMessage('Added to favorites', 'success');
+            }
+        } catch (error) {
+            showMessage('Failed to update favorites: ' + error.message, 'error');
+        }
     }
 
     function updatePagination() {
@@ -761,28 +365,19 @@
         window.location.href = `property-detail.html?id=${propertyId}`;
     }
 
-    /**
-     * Initializes the map and the Marker Cluster group.
-     */
     function initMap() {
         if (!map) {
-            // Set initial view to a central, wide area (e.g., center of India) as a default
             map = L.map('map').setView([20.5937, 78.9629], 5);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
-            // Initialize the cluster group instead of a simple layer group
             markerCluster = L.markerClusterGroup();
             map.addLayer(markerCluster);
         }
-        // Always clear the clusters when updating markers
         markerCluster.clearLayers();
     }
 
-    /**
-     * Updates the markers on the map using the Marker Cluster group.
-     */
     function updateMapMarkers() {
         initMap();
 
@@ -795,28 +390,21 @@
         pageProperties.forEach(property => {
             if (property.latitude && property.longitude) {
                 const latLng = [property.latitude, property.longitude];
-
-                // Collect coordinates to adjust the map view
                 bounds.push(latLng);
 
                 const marker = L.marker(latLng)
                     .bindPopup(`<strong>${property.title || property.bhk + ' BHK'}</strong><br>${property.location}<br>₹${Number(property.price).toLocaleString()}`);
 
-                // Add marker to the cluster group
                 markerCluster.addLayer(marker);
             }
         });
 
-        // Fit map view to cover all visible markers if properties exist
         if (bounds.length > 0) {
-            // Use fitBounds to zoom and center the map around all markers on the current page
             map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
         } else {
-             // Reset to default view if no markers on the current page
-             map.setView([20.5937, 78.9629], 5);
+            map.setView([20.5937, 78.9629], 5);
         }
     }
 </script>
-
 </body>
 </html>

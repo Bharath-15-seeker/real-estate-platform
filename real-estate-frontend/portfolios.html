@@ -6,9 +6,14 @@
     <title>Browse Portfolios - PropertyHub</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .portfolio-card { position: relative; }
+        .favorite-btn { position: absolute; top: 1rem; right: 1rem; background: rgba(255, 255, 255, 0.95); border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.25rem; cursor: pointer; transition: all 0.3s ease; z-index: 10; color: #cbd5e1; }
+        .favorite-btn:hover { background: white; transform: scale(1.1); }
+        .favorite-btn.active { color: #ef4444; }
+    </style>
 </head>
 <body>
-<!-- Navigation -->
 <nav class="navbar">
     <div class="nav-container">
         <div class="nav-logo">
@@ -20,6 +25,9 @@
         <div class="nav-menu">
             <a href="properties.html" class="nav-link">Browse Properties</a>
             <a href="portfolios.html" class="nav-link active">Browse Portfolios</a>
+            <a href="favorites.html" class="nav-link" id="favoritesLink" style="display: none;">
+                <i class="fas fa-heart"></i> Favorites
+            </a>
             <div class="auth-buttons" id="authButtons">
                 <a href="login.html" class="btn btn-outline">Login</a>
                 <a href="register.html" class="btn btn-primary">Register</a>
@@ -32,7 +40,6 @@
     </div>
 </nav>
 
-<!-- Portfolios Header -->
 <div class="page-header">
     <div class="container">
         <h1>Browse Portfolios</h1>
@@ -40,7 +47,6 @@
     </div>
 </div>
 
-<!-- Search and Filter -->
 <div class="search-section">
     <div class="container">
         <div class="search-form">
@@ -62,33 +68,50 @@
     </div>
 </div>
 
-<!-- Portfolios Grid -->
 <div class="container">
     <div class="loading" id="portfoliosLoading">
         <i class="fas fa-spinner fa-spin"></i> Loading portfolios...
     </div>
 
-    <div class="portfolios-grid" id="portfoliosGrid">
-        <!-- Portfolios will be loaded here -->
-    </div>
+    <div class="portfolios-grid" id="portfoliosGrid"></div>
 </div>
 
-<!-- Success/Error Messages -->
 <div id="messageContainer" class="message-container"></div>
 
 <script src="script.js"></script>
 <script>
     let allPortfolios = [];
     let filteredPortfolios = [];
+    let userFavorites = new Set();
 
-    document.addEventListener('DOMContentLoaded', function() {
-        updateNavigation();
-        loadPortfolios();
+    document.addEventListener('DOMContentLoaded', async function() {
+    updateNavigation();
 
-        // Event listeners
-        document.getElementById('searchInput').addEventListener('input', searchPortfolios);
-        document.getElementById('sortBy').addEventListener('change', sortPortfolios);
-    });
+    if (isAuthenticated()) {
+        document.getElementById('favoritesLink').style.display = 'block';
+        await loadUserFavorites(); // ✅ wait for favorites to load before showing portfolios
+    }
+
+    await loadPortfolios(); // ✅ now hearts will appear correctly
+
+    document.getElementById('searchInput').addEventListener('input', searchPortfolios);
+    document.getElementById('sortBy').addEventListener('change', sortPortfolios);
+});
+
+    async function loadUserFavorites() {
+        try {
+            const favorites = await makeRequest('/favorites', 'GET', null, true);
+            // Convert to numbers to ensure type consistency
+            userFavorites = new Set(
+            favorites
+                .filter(f => f.portfolio !== null && f.portfolio.id)
+                .map(f => Number(f.portfolio.id))
+                );
+            console.log('Loaded portfolio favorites:', Array.from(userFavorites)); // Debug log
+        } catch (error) {
+            console.error('Failed to load favorites:', error);
+        }
+    }
 
     async function loadPortfolios() {
         const loadingElement = document.getElementById('portfoliosLoading');
@@ -119,37 +142,42 @@
         const portfoliosGrid = document.getElementById('portfoliosGrid');
 
         portfoliosGrid.innerHTML = filteredPortfolios.map(portfolio => {
-            // --- REMOVED: average rating calculation and variables ---
             return `
-            <div class="portfolio-card" onclick="viewPortfolio(${portfolio.id})">
-                <div class="portfolio-header">
-                    <div class="portfolio-avatar">
-                        ${portfolio.dp
-                            ? `<img src="${getImageUrl(portfolio.dp)}" alt="${portfolio.title}" class="avatar-img">`
-                            : `<i class="fas fa-user"></i>`}
+            <div class="portfolio-card">
+                ${isAuthenticated() ? `
+                <button class="favorite-btn ${userFavorites.has(portfolio.id) ? 'active' : ''}"
+                        onclick="event.stopPropagation(); toggleFavorite(${portfolio.id}, this)">
+                    <i class="fas fa-heart"></i>
+                </button>` : ''}
+                <div onclick="viewPortfolio(${portfolio.id})">
+                    <div class="portfolio-header">
+                        <div class="portfolio-avatar">
+                            ${portfolio.dp
+                                ? `<img src="${getImageUrl(portfolio.dp)}" alt="${portfolio.title}" class="avatar-img">`
+                                : `<i class="fas fa-user"></i>`}
+                        </div>
+
+                        <div class="portfolio-info">
+                            <h3>${portfolio.title || 'Untitled Portfolio'}</h3>
+                            <p class="portfolio-category">
+                                <i class="fas fa-briefcase"></i>
+                                ${portfolio.category || 'Uncategorized'}
+                            </p>
+                        </div>
                     </div>
 
-                    <div class="portfolio-info">
-                        <h3>${portfolio.title || 'Untitled Portfolio'}</h3>
-                        <p class="portfolio-category">
-                            <i class="fas fa-briefcase"></i>
-                            ${portfolio.category || 'Uncategorized'}
+                    <div class="portfolio-content">
+                        <p class="portfolio-description">
+                            ${portfolio.description
+                                ? portfolio.description.substring(0, 150) + (portfolio.description.length > 150 ? '...' : '')
+                                : 'No description available'}
                         </p>
-                        <!-- REMOVED: portfolio-rating div -->
-                    </div>
-                </div>
 
-                <div class="portfolio-content">
-                    <p class="portfolio-description">
-                        ${portfolio.description
-                            ? portfolio.description.substring(0, 150) + (portfolio.description.length > 150 ? '...' : '')
-                            : 'No description available'}
-                    </p>
-
-                    <div class="portfolio-actions">
-                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); viewPortfolio(${portfolio.id})">
-                            <i class="fas fa-eye"></i> View Details
-                        </button>
+                        <div class="portfolio-actions">
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); viewPortfolio(${portfolio.id})">
+                                <i class="fas fa-eye"></i> View Details
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -157,8 +185,34 @@
         }).join('');
     }
 
+    async function toggleFavorite(portfolioId, button) {
+        if (!isAuthenticated()) {
+            showMessage('Please login to save favorites', 'error');
+            return;
+        }
+
+        try {
+            if (userFavorites.has(portfolioId)) {
+                const favorites = await makeRequest('/favorites', 'GET', null, true);
+                const favorite = favorites.find(f => f.portfolio && Number(f.portfolio.id) === Number(portfolioId));
+                if (favorite) {
+                    await makeRequest(`/favorites/${favorite.id}`, 'DELETE', null, true);
+                    userFavorites.delete(portfolioId);
+                    button.classList.remove('active');
+                    showMessage('Removed from favorites', 'success');
+                }
+            } else {
+                await makeRequest(`/favorites/portfolio/${portfolioId}`, 'POST', null, true);
+                userFavorites.add(portfolioId);
+                button.classList.add('active');
+                showMessage('Added to favorites', 'success');
+            }
+        } catch (error) {
+            showMessage('Failed to update favorites: ' + error.message, 'error');
+        }
+    }
+
     function sortPortfolios() {
-        // Placeholder for sorting logic
         const sortBy = document.getElementById('sortBy').value;
 
         if (sortBy === 'experience') {
@@ -166,9 +220,6 @@
         } else if (sortBy === 'name') {
             filteredPortfolios.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
         } else if (sortBy === 'newest') {
-            // Assuming 'newest' means sorting by a creation timestamp,
-            // but since no timestamp is available here, it defaults to loaded order.
-            // Replace with actual date comparison if a timestamp field is added.
             filteredPortfolios = [...allPortfolios];
         }
 
@@ -188,30 +239,11 @@
             );
         }
 
-        // Apply current sort filter after searching
         sortPortfolios();
     }
 
-
     function viewPortfolio(portfolioId) {
         window.location.href = `portfolio-detail.html?id=${portfolioId}`;
-    }
-
-
-    async function contactAgent(userId) {
-        const message = prompt('Enter your message:');
-        if (!message) return;
-
-        try {
-            await makeRequest('/contact', 'POST', {
-                recipientId: userId,
-                message: message
-            });
-
-            showMessage('Message sent successfully!', 'success');
-        } catch (error) {
-            showMessage('Failed to send message: ' + error.message, 'error');
-        }
     }
 </script>
 </body>

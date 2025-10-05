@@ -60,8 +60,12 @@ public class FavoriteService {
         User user = userRepo.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Portfolio portfolio = portfolioRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Property not found"));
+                .orElseThrow(() -> new RuntimeException("Portfolio not found"));
 
+        Optional<Favorite> existing = favoriteRepo.findByUserAndPortfolio(user, portfolio);
+        if (existing.isPresent()) {
+            throw new RuntimeException("Portfolio is already in favorites");
+        }
         Favorite favorite = new Favorite();
         favorite.setUser(user);
         favorite.setPortfolio(portfolio);

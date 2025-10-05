@@ -8,109 +8,122 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <a href="index.html">
-                    <i class="fas fa-home"></i>
-                    PropertyHub
-                </a>
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo">
+            <a href="index.html">
+                <i class="fas fa-home"></i>
+                PropertyHub
+            </a>
+        </div>
+        <div class="nav-menu">
+            <a href="properties.html" class="nav-link">Browse Properties</a>
+            <a href="portfolios.html" class="nav-link">Browse Portfolios</a>
+            <a href="favorites.html" class="nav-link" id="favoritesLink" style="display: none;">
+                <i class="fas fa-heart"></i> Favorites
+            </a>
+            <div class="auth-buttons" id="authButtons">
+                <a href="login.html" class="btn btn-outline">Login</a>
+                <a href="register.html" class="btn btn-primary">Register</a>
             </div>
-            <div class="nav-menu">
-                <a href="properties.html" class="nav-link">Browse Properties</a>
-                <a href="portfolios.html" class="nav-link">Browse Portfolios</a>
-                <div class="auth-buttons" id="authButtons">
-                    <a href="login.html" class="btn btn-outline">Login</a>
-                    <a href="register.html" class="btn btn-primary">Register</a>
-                </div>
-                <div class="user-menu" id="userMenu" style="display: none;">
-                    <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
-                    <button class="btn btn-outline" onclick="logout()">Logout</button>
+            <div class="user-menu" id="userMenu" style="display: none;">
+                <a href="dashboard.html" class="btn btn-primary">Dashboard</a>
+                <button class="btn btn-outline" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<header class="hero">
+    <div class="hero-content">
+        <h1>Find Your Perfect Property</h1>
+        <p>Discover amazing properties and connect with top real estate professionals</p>
+        <div class="hero-buttons">
+            <a href="properties.html" class="btn btn-primary btn-large">Browse Properties</a>
+            <a href="portfolios.html" class="btn btn-outline btn-large">View Portfolios</a>
+        </div>
+    </div>
+</header>
+
+<!-- Features Section -->
+<section class="features">
+    <div class="container">
+        <h2>Why Choose PropertyHub?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-search"></i>
+                <h3>Easy Property Search</h3>
+                <p>Find properties that match your criteria with our advanced search filters</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-users"></i>
+                <h3>Professional Portfolios</h3>
+                <p>Connect with experienced real estate professionals and view their portfolios</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-envelope"></i>
+                <h3>Direct Contact</h3>
+                <p>Contact property owners and agents directly through our platform</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-heart"></i>
+                <h3>Save Favorites</h3>
+                <p>Save your favorite properties and portfolios for quick access later</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-3 mb-md-0">
+                <h5>PropertyHub</h5>
+                <p>Your ultimate destination for finding properties and connecting with real estate experts.</p>
+            </div>
+            <div class="col-md-4 mb-3 mb-md-0">
+                <h5>Quick Links</h5>
+                <ul class="list-unstyled">
+                    <li><a href="properties.html" class="text-white-50">Browse Properties</a></li>
+                    <li><a href="portfolios.html" class="text-white-50">Browse Portfolios</a></li>
+                    <li><a href="login.html" class="text-white-50">Login</a></li>
+                    <li><a href="register.html" class="text-white-50">Register</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4 mb-3 mb-md-0">
+                <h5>Contact Us</h5>
+                <p>Email: info@propertyhub.com</p>
+                <p>Phone: +1 (123) 456-7890</p>
+                <div class="social-icons">
+                    <a href="#" class="text-white-50 me-3"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white-50 me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white-50 me-3"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-white-50"><i class="fab fa-linkedin-in"></i></a>
                 </div>
             </div>
         </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <header class="hero">
-        <div class="hero-content">
-            <h1>Find Your Perfect Property</h1>
-            <p>Discover amazing properties and connect with top real estate professionals</p>
-            <div class="hero-buttons">
-                <a href="properties.html" class="btn btn-primary btn-large">Browse Properties</a>
-                <a href="portfolios.html" class="btn btn-outline btn-large">View Portfolios</a>
-            </div>
+        <div class="text-center mt-4 pt-3 border-top border-secondary">
+            <p class="mb-0">&copy; 2023 PropertyHub. All rights reserved.</p>
         </div>
-    </header>
+    </div>
+</footer>
 
-    <!-- Features Section -->
-    <section class="features">
-        <div class="container">
-            <h2>Why Choose PropertyHub?</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <i class="fas fa-search"></i>
-                    <h3>Easy Property Search</h3>
-                    <p>Find properties that match your criteria with our advanced search filters</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-users"></i>
-                    <h3>Professional Portfolios</h3>
-                    <p>Connect with experienced real estate professionals and view their portfolios</p>
-                </div>
-                <div class="feature-card">
-                    <i class="fas fa-envelope"></i>
-                    <h3>Direct Contact</h3>
-                    <p>Contact property owners and agents directly through our platform</p>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- Success/Error Messages -->
+<div id="messageContainer" class="message-container"></div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <h5>PropertyHub</h5>
-                    <p>Your ultimate destination for finding properties and connecting with real estate experts.</p>
-                </div>
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="properties.html" class="text-white-50">Browse Properties</a></li>
-                        <li><a href="portfolios.html" class="text-white-50">Browse Portfolios</a></li>
-                        <li><a href="login.html" class="text-white-50">Login</a></li>
-                        <li><a href="register.html" class="text-white-50">Register</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <h5>Contact Us</h5>
-                    <p>Email: info@propertyhub.com</p>
-                    <p>Phone: +1 (123) 456-7890</p>
-                    <div class="social-icons">
-                        <a href="#" class="text-white-50 me-3"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="text-white-50 me-3"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="text-white-50 me-3"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="text-white-50"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="text-center mt-4 pt-3 border-top border-secondary">
-                <p class="mb-0">&copy; 2023 PropertyHub. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+<script src="script.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        updateNavigation();
 
-    <!-- Success/Error Messages -->
-    <div id="messageContainer" class="message-container"></div>
-
-    <script src="script.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            updateNavigation();
-        });
-    </script>
+        // Show favorites link only if user is logged in
+        if (isAuthenticated()) {
+            document.getElementById('favoritesLink').style.display = 'block';
+        }
+    });
+</script>
 </body>
 </html>

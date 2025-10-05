@@ -8,87 +8,36 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
 
     <style>
-        /* Review Section Styling */
+        .portfolio-detail { position: relative; }
+        .favorite-btn-detail { position: absolute; top: 2rem; right: 2rem; background: rgba(59, 130, 246, 0.1); border: 2px solid #3b82f6; width: 50px; height: 50px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; transition: all 0.3s ease; z-index: 10; color: #cbd5e1; }
+        .favorite-btn-detail:hover { background: #3b82f6; color: white; transform: scale(1.1); }
+        .favorite-btn-detail.active { color: #ef4444; background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
+        .favorite-btn-detail.active:hover { background: #ef4444; color: white; }
+
         .portfolio-reviews { margin-top: 30px; }
+        .average-rating { text-align: center; margin-bottom: 20px; background: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .average-rating .avg-stars { font-size: 28px; color: #e6b800; display: block; margin-bottom: 5px; }
+        .average-rating .avg-score { font-size: 18px; font-weight: bold; margin-right: 5px; }
+        .average-rating .review-count { font-size: 14px; color: #777; }
 
-        .average-rating {
-          text-align: center;
-          margin-bottom: 20px;
-          background: #fff;
-          border-radius: 10px;
-          padding: 15px;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        .average-rating .avg-stars {
-          font-size: 28px;
-          color: #e6b800;
-          display: block;
-          margin-bottom: 5px;
-        }
-        .average-rating .avg-score {
-          font-size: 18px;
-          font-weight: bold;
-          margin-right: 5px;
-        }
-        .average-rating .review-count {
-          font-size: 14px;
-          color: #777;
-        }
-
-        .review-card {
-          background: #fff;
-          border-radius: 8px;
-          padding: 12px;
-          margin-bottom: 14px;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.12);
-        }
-        .review-header {
-          display: flex;
-          align-items: center;
-          margin-bottom: 8px;
-        }
-        .review-avatar {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          background: #4CAF50;
-          color: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: bold;
-          font-size: 16px;
-          margin-right: 10px;
-        }
+        .review-card { background: #fff; border-radius: 8px; padding: 12px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+        .review-header { display: flex; align-items: center; margin-bottom: 8px; }
+        .review-avatar { width: 36px; height: 36px; border-radius: 50%; background: #4CAF50; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; margin-right: 10px; }
         .review-meta { display: flex; flex-direction: column; }
         .reviewer-name { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
         .review-stars { color: #e6b800; font-size: 18px; letter-spacing: 1px; }
         .review-date { color: #777; font-size: 11px; }
         .review-body p { font-size: 15px; line-height: 1.4; margin: 0; }
-
         .review-footer { margin-top: 8px; text-align: right; }
 
-        .add-review {
-          margin-top: 20px;
-          background: #fff;
-          border-radius: 10px;
-          padding: 16px;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        .add-review textarea,
-        .add-review select {
-          width: 100%;
-          margin-bottom: 10px;
-          padding: 8px;
-          border-radius: 6px;
-          border: 1px solid #ccc;
-          font-size: 14px;
-        }
+        .add-review { margin-top: 20px; background: #fff; border-radius: 10px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .add-review textarea, .add-review select { width: 100%; margin-bottom: 10px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
         .read-more-btn { display: inline-block; margin-top: 10px; }
+
+        @media (max-width:768px){ .favorite-btn-detail{top:1rem; right:1rem; width:45px; height:45px; font-size:1.25rem;} }
     </style>
 </head>
 <body>
-<!-- Navigation -->
 <nav class="navbar">
     <div class="nav-container">
         <div class="nav-logo">
@@ -99,6 +48,9 @@
         <div class="nav-menu">
             <a href="properties.html" class="nav-link">Browse Properties</a>
             <a href="portfolios.html" class="nav-link">Browse Portfolios</a>
+            <a href="favorites.html" class="nav-link" id="favoritesLink" style="display: none;">
+                <i class="fas fa-heart"></i> Favorites
+            </a>
             <div class="auth-buttons" id="authButtons">
                 <a href="login.html" class="btn btn-outline">Login</a>
                 <a href="register.html" class="btn btn-primary">Register</a>
@@ -111,7 +63,6 @@
     </div>
 </nav>
 
-<!-- Portfolio Detail -->
 <div class="container">
     <div class="breadcrumb">
         <a href="portfolios.html">Portfolios</a>
@@ -126,23 +77,26 @@
     <div class="portfolio-detail" id="portfolioDetail" style="display: none;"></div>
 </div>
 
-<!-- Success/Error Messages -->
 <div id="messageContainer" class="message-container"></div>
 
 <script src="script.js"></script>
 <script>
+    let currentPortfolioId = null;
+    let isFavorite = false;
+
     document.addEventListener('DOMContentLoaded', function() {
       updateNavigation();
+      if (isAuthenticated()) {
+          document.getElementById('favoritesLink').style.display = 'block';
+      }
       loadPortfolioDetail();
     });
 
-    // ✅ get logged-in user id
     function getCurrentUserId() {
       const user = JSON.parse(localStorage.getItem("user"));
       return user ? user.userId : null;
     }
 
-    // average rating display
     function renderAverageRating(reviews) {
       const avgDiv = document.getElementById('averageRating');
       if (!reviews.length) {
@@ -157,67 +111,118 @@
       avgDiv.querySelector('.review-count').textContent = `(${reviews.length} reviews)`;
     }
 
-    // render reviews with delete btn only for owner
-function renderReviews(reviews, currentUserId) {
-  const reviewsList = document.getElementById('reviewsList');
-  const readMoreBtn = document.getElementById('readMoreBtn');
-  const limit = 3;
-  let showingAll = false;
+    function renderReviews(reviews, currentUserId) {
+      const reviewsList = document.getElementById('reviewsList');
+      const readMoreBtn = document.getElementById('readMoreBtn');
+      const limit = 3;
+      let showingAll = false;
 
-  function showReviews() {
-    const visibleReviews = showingAll ? reviews : reviews.slice(0, limit);
-    reviewsList.innerHTML = visibleReviews.map(r => {
-      console.log("Review userId:", r.userId, "Current userId:", currentUserId);
-      return `
-        <div class="review-card">
-          <div class="review-header">
-            <div class="review-avatar">
-              <span>${r.reviewerName ? r.reviewerName.charAt(0).toUpperCase() : 'A'}</span>
-            </div>
-            <div class="review-meta">
-              <strong class="reviewer-name">${r.reviewerName || 'Anonymous'}</strong>
-              <div class="review-stars">
-                ${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}
-              </div>
-              <small class="review-date">${new Date(r.createdAt).toLocaleDateString()}</small>
-            </div>
-          </div>
-          <div class="review-body">
-            <p>${r.comment}</p>
-          </div>
-          <div class="review-footer">
-            ${String(r.userId) === String(currentUserId) ? `
-            <button class="btn btn-outline btn-sm delete-review" data-id="${r.id}">
-              <i class="fas fa-trash"></i> Delete
-            </button>` : ''}
-          </div>
-        </div>
-      `;
-    }).join('');
+      const currentUserIdString = String(currentUserId);
 
-    readMoreBtn.style.display = (reviews.length > limit && !showingAll) ? 'inline-block' : 'none';
+      const sortedReviews = [...reviews].sort((a, b) => {
+        const aIsCurrentUser = String(a.userId) === currentUserIdString;
+        const bIsCurrentUser = String(b.userId) === currentUserIdString;
 
-    document.querySelectorAll('.delete-review').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        await deleteReview(btn.dataset.id);
+        if (aIsCurrentUser && !bIsCurrentUser) return -1;
+        if (!aIsCurrentUser && bIsCurrentUser) return 1;
+        return new Date(b.createdAt) - new Date(a.createdAt);
       });
-    });
-  }
 
-  readMoreBtn.onclick = () => {
-    showingAll = true;
-    showReviews();
-  };
+      function showReviews() {
+        const visibleReviews = showingAll ? sortedReviews : sortedReviews.slice(0, limit);
+        reviewsList.innerHTML = visibleReviews.map(r => {
+          const isCurrentUser = String(r.userId) === currentUserIdString;
 
-  showReviews();
-}
+          return `
+            <div class="review-card ${isCurrentUser ? 'my-review' : ''}">
+              <div class="review-header">
+                <div class="review-avatar">
+                  <span>${r.reviewerName ? r.reviewerName.charAt(0).toUpperCase() : 'A'}</span>
+                </div>
+                <div class="review-meta">
+                  <strong class="reviewer-name">${r.reviewerName || 'Anonymous'} ${isCurrentUser ? '<span style="color: #4CAF50; font-size: 12px;">(You)</span>' : ''}</strong>
+                  <div class="review-stars">
+                    ${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}
+                  </div>
+                  <small class="review-date">${new Date(r.createdAt).toLocaleDateString()}</small>
+                </div>
+              </div>
+              <div class="review-body">
+                <p>${r.comment}</p>
+              </div>
+              <div class="review-footer">
+                ${isCurrentUser ? `
+                <button class="btn btn-outline btn-sm delete-review" data-id="${r.id}">
+                  <i class="fas fa-trash"></i> Delete
+                </button>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
 
+        readMoreBtn.style.display = (sortedReviews.length > limit && !showingAll) ? 'inline-block' : 'none';
+
+        document.querySelectorAll('.delete-review').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            await deleteReview(btn.dataset.id);
+          });
+        });
+      }
+
+      readMoreBtn.onclick = () => {
+        showingAll = true;
+        showReviews();
+      };
+
+      showReviews();
+    }
+
+    async function checkIfFavorite(portfolioId) {
+        if (!isAuthenticated()) return false;
+
+        try {
+            const favorites = await makeRequest('/favorites', 'GET', null, true);
+            const favorite = favorites.find( f => f.portfolio && Number(f.portfolio.id) === Number(portfolioId));
+            return favorite ? favorite.id : false;
+        } catch (error) {
+            console.error('Failed to check favorite status:', error);
+            return false;
+        }
+    }
+
+    async function togglePortfolioFavorite() {
+        if (!isAuthenticated()) {
+            showMessage('Please login to save favorites', 'error');
+            setTimeout(() => window.location.href = 'login.html', 2000);
+            return;
+        }
+
+        const btn = document.getElementById('favoriteBtn');
+
+        try {
+            if (isFavorite) {
+                await makeRequest(`/favorites/${isFavorite}`, 'DELETE', null, true);
+                isFavorite = false;
+                btn.classList.remove('active');
+                showMessage('Removed from favorites', 'success');
+            } else {
+                await makeRequest(`/favorites/portfolio/${currentPortfolioId}`, 'POST', null, true);
+                const favoriteId = await checkIfFavorite(currentPortfolioId);
+                isFavorite = favoriteId;
+                btn.classList.add('active');
+                showMessage('Added to favorites', 'success');
+            }
+        } catch (error) {
+            showMessage('Failed to update favorites: ' + error.message, 'error');
+        }
+    }
 
     async function loadPortfolioDetail() {
       const urlParams = new URLSearchParams(window.location.search);
       const portfolioId = urlParams.get('id');
       if (!portfolioId) { window.location.href = 'portfolios.html'; return; }
 
+      currentPortfolioId = portfolioId;
       const loadingElement = document.getElementById('portfolioLoading');
       const detailElement = document.getElementById('portfolioDetail');
 
@@ -225,10 +230,19 @@ function renderReviews(reviews, currentUserId) {
         const portfolio = await makeRequest(`/portfolio/${portfolioId}`, 'GET', null, true);
         const reviews = await makeRequest(`/reviews/${portfolioId}`, 'GET', null, true);
 
+        if (isAuthenticated()) {
+            isFavorite = await checkIfFavorite(portfolioId);
+        }
+
         loadingElement.style.display = 'none';
         detailElement.style.display = 'block';
 
         detailElement.innerHTML = `
+          ${isAuthenticated() ? `
+          <button id="favoriteBtn" class="favorite-btn-detail ${isFavorite ? 'active' : ''}" onclick="togglePortfolioFavorite()">
+              <i class="fas fa-heart"></i>
+          </button>` : ''}
+
           <div class="portfolio-header">
             <div class="portfolio-avatar-large">
               ${portfolio.dp ? `<img src="${getImageUrl(portfolio.dp)}" alt="${portfolio.title}" class="portfolio-dp">`
