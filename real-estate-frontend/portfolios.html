@@ -11,6 +11,11 @@
         .favorite-btn { position: absolute; top: 1rem; right: 1rem; background: rgba(255, 255, 255, 0.95); border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.25rem; cursor: pointer; transition: all 0.3s ease; z-index: 10; color: #cbd5e1; }
         .favorite-btn:hover { background: white; transform: scale(1.1); }
         .favorite-btn.active { color: #ef4444; }
+
+         .delete-btn-admin {
+        right: 4.5rem; /* Move 4.5rem from the right */
+        color: #ef4444; /* Red trash icon */
+    }
     </style>
 </head>
 <body>
@@ -83,31 +88,50 @@
     let allPortfolios = [];
     let filteredPortfolios = [];
     let userFavorites = new Set();
+    let isAdminUser = false; // ⚡️ NEW: Flag to store admin status
 
     document.addEventListener('DOMContentLoaded', async function() {
-    updateNavigation();
+        updateNavigation();
 
-    if (isAuthenticated()) {
-        document.getElementById('favoritesLink').style.display = 'block';
-        await loadUserFavorites(); // ✅ wait for favorites to load before showing portfolios
+        // ⚡️ NEW: Check admin status on load (assuming checkAdminStatus is available)
+        isAdminUser = await checkAdminStatus();
+
+        if (isAuthenticated()) {
+            document.getElementById('favoritesLink').style.display = 'block';
+            await loadUserFavorites();
+        }
+
+        await loadPortfolios();
+
+        document.getElementById('searchInput').addEventListener('input', searchPortfolios);
+        document.getElementById('sortBy').addEventListener('change', sortPortfolios);
+    });
+
+    // ⚡️ IMPORTANT: You MUST include or ensure the checkAdminStatus function is available
+    // Example (assuming it's in script.js or another function block):
+    async function checkAdminStatus() {
+        if (!isAuthenticated()) return false;
+        try {
+            // Adjust endpoint if needed, assuming /user/profile returns the role
+            const userProfile = await makeRequest('/user/profile', 'GET', null, true);
+            return userProfile && userProfile.role === 'ADMIN';
+        } catch (error) {
+            console.error('Failed to load user profile or check admin status:', error);
+            return false;
+        }
     }
 
-    await loadPortfolios(); // ✅ now hearts will appear correctly
-
-    document.getElementById('searchInput').addEventListener('input', searchPortfolios);
-    document.getElementById('sortBy').addEventListener('change', sortPortfolios);
-});
 
     async function loadUserFavorites() {
         try {
             const favorites = await makeRequest('/favorites', 'GET', null, true);
             // Convert to numbers to ensure type consistency
             userFavorites = new Set(
-            favorites
-                .filter(f => f.portfolio !== null && f.portfolio.id)
-                .map(f => Number(f.portfolio.id))
-                );
-            console.log('Loaded portfolio favorites:', Array.from(userFavorites)); // Debug log
+                favorites
+                    .filter(f => f.portfolio !== null && f.portfolio.id)
+                    .map(f => Number(f.portfolio.id))
+            );
+            console.log('Loaded portfolio favorites:', Array.from(userFavorites));
         } catch (error) {
             console.error('Failed to load favorites:', error);
         }
@@ -149,6 +173,13 @@
                         onclick="event.stopPropagation(); toggleFavorite(${portfolio.id}, this)">
                     <i class="fas fa-heart"></i>
                 </button>` : ''}
+
+                ${isAdminUser ? `
+                <button class="favorite-btn delete-btn-admin"
+                        onclick="event.stopPropagation(); deletePortfolio(${portfolio.id})">
+                    <i class="fas fa-trash"></i>
+                </button>` : ''}
+
                 <div onclick="viewPortfolio(${portfolio.id})">
                     <div class="portfolio-header">
                         <div class="portfolio-avatar">
@@ -184,6 +215,38 @@
             `;
         }).join('');
     }
+
+    // ⚡️ NEW FUNCTION: Handles the portfolio deletion
+    async function deletePortfolio(portfolioId) {
+        if (!confirm('Are you sure you want to delete this portfolio? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            // 🛑 IMPORTANT: Use the correct admin endpoint path
+            // This assumes your backend AdminController has a mapping for /api/admin/portfolios/{id}
+            await makeRequest(`/admin/portfolios/${portfolioId}`, 'DELETE', null, true);
+
+            // This runs successfully because the backend should return 204 No Content
+            showMessage('Portfolio deleted successfully!', 'success');
+
+        }  catch (error) {
+        // Check if the error is the expected JSON parsing failure for a successful operation
+        if (error.message && error.message.includes('Portfolio deleted successfully.')) {
+            // It's the expected *successful* error. Treat as success.
+            showMessage('Portfolio deleted successfully.', 'success');
+        } else {
+            // It's a real failure
+            showMessage('Failed to delete property: ' + error.message, 'error');
+            return; // Stop here if it's a real failure
+        }
+    }
+
+        // Refresh the list after successful deletion
+        await loadPortfolios();
+        searchPortfolios();
+    }
+
 
     async function toggleFavorite(portfolioId, button) {
         if (!isAuthenticated()) {

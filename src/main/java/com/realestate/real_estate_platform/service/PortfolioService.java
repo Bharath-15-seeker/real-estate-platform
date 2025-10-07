@@ -270,4 +270,13 @@ public class PortfolioService {
         contactRepository.deleteByPortfolioId(id);
         portfolioRepo.delete(portfolio);
     }
+
+    @Transactional
+    public void deletePortfolioById(Long id) {
+        Portfolio portfolio = portfolioRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Portfolio not found"));
+
+        contactRepository.deleteByPortfolioId(id);
+        portfolioRepo.delete(portfolio);
+    }
 }

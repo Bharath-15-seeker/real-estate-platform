@@ -6,6 +6,224 @@
     <title>Dashboard - PropertyHub</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <style>
+        .map-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+        }
+
+        .map-modal-content {
+            background-color: #fff;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 900px;
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .map-modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .map-modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .map-close {
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .map-close:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .map-container-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #mapContainer {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map-info-box {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 350px;
+        }
+
+        .map-info-box p {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .map-info-box .coordinates {
+            font-weight: 600;
+            color: #2563eb;
+            font-size: 15px;
+        }
+
+        .map-modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            background-color: #f9fafb;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .location-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .location-status i {
+            font-size: 18px;
+        }
+
+        .map-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-map-save {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-map-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-map-cancel {
+            background: white;
+            color: #374151;
+            border: 2px solid #d1d5db;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-map-cancel:hover {
+            border-color: #9ca3af;
+            background-color: #f9fafb;
+        }
+
+        .leaflet-container {
+            cursor: crosshair;
+        }
+
+        /* Style for the select location button */
+        .btn-select-location {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .btn-select-location:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-select-location i {
+            font-size: 16px;
+        }
+
+        /* Updated coordinate display */
+        .coordinate-display {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 2px solid #2563eb;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .coordinate-display i {
+            color: #2563eb;
+            font-size: 18px;
+        }
+
+        .coordinate-display span {
+            font-weight: 600;
+            color: #1e40af;
+            font-size: 15px;
+        }
+    </style>
 </head>
 <body>
 <nav class="navbar">
@@ -54,7 +272,6 @@
         </div>
     </div>
 
-
     <div class="tab-content" id="portfolio-tab">
         <div class="section-header">
             <h2>My Portfolios</h2>
@@ -65,7 +282,6 @@
         <div class="portfolio-grid" id="userPortfolios">
         </div>
     </div>
-
 
     <div class="tab-content" id="add-portfolio-tab">
         <div class="section-header">
@@ -124,6 +340,7 @@
             </button>
         </form>
     </div>
+
     <div class="tab-content" id="add-property-tab">
         <div class="section-header">
             <h2>Add New Property</h2>
@@ -198,6 +415,7 @@
                     <option value="SALE">Sale</option>
                 </select>
             </div>
+
             <div class="form-group">
                 <label for="images">Property Images</label>
                 <input type="file" id="images" name="images" multiple accept="image/*">
@@ -209,23 +427,29 @@
                 <div class="form-row">
                     <div class="form-group" style="flex: 1;">
                         <label for="latitude">Latitude</label>
-                        <input type="number" id="latitude" name="latitude" step="any" placeholder="e.g., 10.7905" required>
+                        <input type="number" id="latitude" name="latitude" step="any" placeholder="e.g., 10.7905" required readonly>
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label for="longitude">Longitude</label>
-                        <input type="number" id="longitude" name="longitude" step="any" placeholder="e.g., 78.7047" required>
+                        <input type="number" id="longitude" name="longitude" step="any" placeholder="e.g., 78.7047" required readonly>
                     </div>
                 </div>
+
+                <div id="coordinateDisplay" class="coordinate-display" style="display: none;">
+                    <i class="fas fa-map-pin"></i>
+                    <span>Location Pinned: <span id="displayCoords"></span></span>
+                </div>
+
                 <div class="form-row" style="gap: 0.5rem; margin-top: 0.5rem;">
                     <button type="button" class="btn btn-outline" onclick="selectLocation()" style="flex: 1;">
                         <i class="fas fa-location-arrow"></i> Use Current Location
                     </button>
-                    <a href="https://maps.google.com" target="_blank" class="btn btn-primary" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; background-color: #4285F4; color: white;">
-                        <i class="fas fa-map-marker-alt" style="margin-right: 0.5rem;"></i> Open Google Maps
-                    </a>
+                    <button type="button" class="btn-select-location" onclick="openMapModal()" style="flex: 1;">
+                        <i class="fas fa-map-marked-alt"></i> Select Location on Map
+                    </button>
                 </div>
                 <small class="form-help">
-                    Use **Current Location** for one-click pinning, or use **Open Google Maps** to manually find coordinates.
+                    Use <strong>Current Location</strong> for quick GPS pinning, or <strong>Select Location on Map</strong> to choose precisely.
                 </small>
             </div>
 
@@ -238,111 +462,36 @@
         </form>
     </div>
 
-    <script>
-        // Placeholder for showMessage, assuming style.css defines the look
-        function showMessage(message, type = 'info') {
-            const container = document.getElementById('messageContainer');
-            if (!container) return; // Exit if container not found
+    <!-- Map Selection Modal -->
+    <div id="mapModal" class="map-modal">
+        <div class="map-modal-content">
+            <div class="map-modal-header">
+                <h3><i class="fas fa-map-marker-alt"></i> Select Property Location</h3>
+                <button class="map-close" onclick="closeMapModal()">&times;</button>
+            </div>
+            <div class="map-container-wrapper">
+                <div class="map-info-box">
+                    <p><i class="fas fa-info-circle"></i> Click anywhere on the map to select location</p>
+                    <p class="coordinates">Coordinates: <span id="mapCoordinates">Not selected</span></p>
+                </div>
+                <div id="mapContainer"></div>
+            </div>
+            <div class="map-modal-footer">
+                <div class="location-status" id="locationStatus" style="display: none;">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Location Selected</span>
+                </div>
+                <div class="map-actions">
+                    <button class="btn-map-cancel" onclick="closeMapModal()">Cancel</button>
+                    <button class="btn-map-save" onclick="saveMapLocation()" id="saveLocationBtn" disabled>
+                        <i class="fas fa-save"></i> Save Location
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            const messageElement = document.createElement('div');
-            // Assuming 'message', 'info', 'success', 'error' classes are styled in style.css
-            messageElement.className = `message ${type}`;
-            messageElement.textContent = message;
-            container.appendChild(messageElement);
-
-            // Auto-remove message after 5 seconds
-            setTimeout(() => {
-                if (container.contains(messageElement)) {
-                    container.removeChild(messageElement);
-                }
-            }, 5000);
-        }
-
-        /**
-         * Uses the Geolocation API to find the user's current location
-         * and pre-fill the latitude and longitude fields.
-         */
-        /**
- * Uses the Geolocation API to find the user's current location
- * and pre-fill the specified latitude and longitude fields.
- * @param {string} latInputId - The ID of the latitude input field to update.
- * @param {string} lngInputId - The ID of the longitude input field to update.
- */
-function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
-    if (navigator.geolocation) {
-        // Find the specific button that was clicked to update its state
-        const locationBtn = document.querySelector(`[onclick="selectLocation('${latInputId}', '${lngInputId}')"]`);
-
-        // Safely determine which loading element to use, prioritizing the specific button's text
-        let originalButtonHtml = locationBtn ? locationBtn.innerHTML : '<i class="fas fa-location-arrow"></i> Use Current Location';
-
-        showMessage('Attempting to get current location... Please approve the browser prompt.', 'info');
-
-        if (locationBtn) {
-            locationBtn.disabled = true;
-            locationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Locating...';
-        }
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-
-                // Set values for the specified input IDs
-                document.getElementById(latInputId).value = lat.toFixed(6);
-                document.getElementById(lngInputId).value = lng.toFixed(6);
-
-                showMessage(`✅ Current location successfully pinned! (${lat.toFixed(4)}, ${lng.toFixed(4)})`, 'success');
-
-                // Re-enable button
-                if (locationBtn) {
-                    locationBtn.disabled = false;
-                    locationBtn.innerHTML = originalButtonHtml;
-                }
-            },
-            (error) => {
-                console.error("Geolocation error:", error);
-                let errorMessage = 'Failed to get current location. Please manually enter coordinates.';
-                if (error.code === error.PERMISSION_DENIED) {
-                    errorMessage = '🚫 Location access denied. Enable location services and try again.';
-                } else if (error.code === error.POSITION_UNAVAILABLE) {
-                    errorMessage = '⚠️ Location information is unavailable.';
-                } else if (error.code === error.TIMEOUT) {
-                    errorMessage = '⏳ Location request timed out. Please try again.';
-                }
-                showMessage(errorMessage, 'error');
-
-                // Re-enable button
-                if (locationBtn) {
-                    locationBtn.disabled = false;
-                    locationBtn.innerHTML = originalButtonHtml;
-                }
-            },
-            { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-        );
-    } else {
-        showMessage('❌ Geolocation is not supported by this browser. Please enter coordinates manually.', 'error');
-    }
-}
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-            document.getElementById(`${tabName}-tab`).classList.add('active');
-        }
-
-        // Initialize everything on DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', () => {
-            const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach(button => {
-                button.addEventListener('click', () => switchTab(button.dataset.tab));
-            });
-        });
-    </script>
-
-
+    <!-- Edit Property Modal -->
     <div class="modal" id="editPropertyModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -420,10 +569,10 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                         <option value="SALE">Sale</option>
                     </select>
                 </div>
+
                 <div class="form-group">
                     <label>Existing Images (Click 'Remove' to delete)</label>
-                    <div id="editExistingImages" class="existing-images-container">
-                    </div>
+                    <div id="editExistingImages" class="existing-images-container"></div>
                     <input type="hidden" id="imagesToDelete" name="imagesToDelete" value="">
                 </div>
 
@@ -438,27 +587,31 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                     <div class="form-row">
                         <div class="form-group" style="flex: 1;">
                             <label for="editLatitude">Latitude</label>
-                            <input type="number" id="editLatitude" name="latitude" step="any" required>
+                            <input type="number" id="editLatitude" name="latitude" step="any" required readonly>
                         </div>
                         <div class="form-group" style="flex: 1;">
                             <label for="editLongitude">Longitude</label>
-                            <input type="number" id="editLongitude" name="longitude" step="any" required>
+                            <input type="number" id="editLongitude" name="longitude" step="any" required readonly>
                         </div>
                     </div>
+
+                    <div id="editCoordinateDisplay" class="coordinate-display" style="display: none;">
+                        <i class="fas fa-map-pin"></i>
+                        <span>Location Pinned: <span id="editDisplayCoords"></span></span>
+                    </div>
+
                     <div class="form-row" style="gap: 0.5rem; margin-top: 0.5rem;">
                         <button type="button" class="btn btn-outline" onclick="selectLocation('editLatitude', 'editLongitude')" style="flex: 1;">
                             <i class="fas fa-location-arrow"></i> Use Current Location
                         </button>
-                        <a href="https://maps.google.com" target="_blank" class="btn btn-primary" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; background-color: #4285F4; color: white;">
-                            <i class="fas fa-map-marker-alt" style="margin-right: 0.5rem;"></i> Open Google Maps
-                        </a>
+                        <button type="button" class="btn-select-location" onclick="openMapModal('editLatitude', 'editLongitude')" style="flex: 1;">
+                            <i class="fas fa-map-marked-alt"></i> Select Location on Map
+                        </button>
                     </div>
                     <small class="form-help">
-                        Use **Current Location** for one-click pinning.
+                        Use <strong>Current Location</strong> or select on map to update location.
                     </small>
                 </div>
-
-
 
                 <div class="modal-actions">
                     <button type="button" class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
@@ -477,22 +630,211 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
 
     <script src="script.js"></script>
     <script>
+        // Map variables
+        let map = null;
+        let marker = null;
+        let selectedLat = null;
+        let selectedLng = null;
+        let targetLatInput = 'latitude';
+        let targetLngInput = 'longitude';
+
+        function showMessage(message, type = 'info') {
+            const container = document.getElementById('messageContainer');
+            if (!container) return;
+
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${type}`;
+            messageElement.textContent = message;
+            container.appendChild(messageElement);
+
+            setTimeout(() => {
+                if (container.contains(messageElement)) {
+                    container.removeChild(messageElement);
+                }
+            }, 5000);
+        }
+
+        function openMapModal(latInputId = 'latitude', lngInputId = 'longitude') {
+            targetLatInput = latInputId;
+            targetLngInput = lngInputId;
+
+            const modal = document.getElementById('mapModal');
+            modal.style.display = 'block';
+
+            // Initialize map after modal is visible
+            setTimeout(() => {
+                if (!map) {
+                    initMap();
+                } else {
+                    map.invalidateSize();
+                }
+
+                // If coordinates already exist, show them on map
+                const existingLat = parseFloat(document.getElementById(latInputId).value);
+                const existingLng = parseFloat(document.getElementById(lngInputId).value);
+
+                if (!isNaN(existingLat) && !isNaN(existingLng)) {
+                    setMapLocation(existingLat, existingLng);
+                    map.setView([existingLat, existingLng], 15);
+                }
+            }, 100);
+        }
+
+        function closeMapModal() {
+            document.getElementById('mapModal').style.display = 'none';
+        }
+
+        function initMap() {
+            // Default to India center
+            const defaultLat = 20.5937;
+            const defaultLng = 78.9629;
+
+            map = L.map('mapContainer').setView([defaultLat, defaultLng], 5);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            map.on('click', function(e) {
+                setMapLocation(e.latlng.lat, e.latlng.lng);
+            });
+
+            // Try to get user's location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const userLat = position.coords.latitude;
+                        const userLng = position.coords.longitude;
+                        map.setView([userLat, userLng], 13);
+                    },
+                    (error) => {
+                        console.log('Geolocation not available, using default location');
+                    }
+                );
+            }
+        }
+
+        function setMapLocation(lat, lng) {
+            selectedLat = lat;
+            selectedLng = lng;
+
+            if (marker) {
+                map.removeLayer(marker);
+            }
+
+            marker = L.marker([lat, lng], {
+                draggable: true
+            }).addTo(map);
+
+            marker.on('dragend', function(e) {
+                const position = marker.getLatLng();
+                setMapLocation(position.lat, position.lng);
+            });
+
+            document.getElementById('mapCoordinates').textContent =
+                `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+            document.getElementById('locationStatus').style.display = 'flex';
+            document.getElementById('saveLocationBtn').disabled = false;
+        }
+
+        function saveMapLocation() {
+            if (selectedLat !== null && selectedLng !== null) {
+                document.getElementById(targetLatInput).value = selectedLat.toFixed(6);
+                document.getElementById(targetLngInput).value = selectedLng.toFixed(6);
+
+                // Update coordinate display
+                const displayElement = targetLatInput === 'latitude' ?
+                    document.getElementById('coordinateDisplay') :
+                    document.getElementById('editCoordinateDisplay');
+                const coordsElement = targetLatInput === 'latitude' ?
+                    document.getElementById('displayCoords') :
+                    document.getElementById('editDisplayCoords');
+
+                displayElement.style.display = 'flex';
+                coordsElement.textContent = `${selectedLat.toFixed(4)}, ${selectedLng.toFixed(4)}`;
+
+                showMessage(`Location saved: ${selectedLat.toFixed(4)}, ${selectedLng.toFixed(4)}`, 'success');
+                closeMapModal();
+            }
+        }
+
+        function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
+            if (navigator.geolocation) {
+                const locationBtn = event.target;
+                const originalButtonHtml = locationBtn.innerHTML;
+
+                showMessage('Getting current location...', 'info');
+                locationBtn.disabled = true;
+                locationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Locating...';
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+
+                        document.getElementById(latInputId).value = lat.toFixed(6);
+                        document.getElementById(lngInputId).value = lng.toFixed(6);
+
+                        // Update coordinate display
+                        const displayElement = latInputId === 'latitude' ?
+                            document.getElementById('coordinateDisplay') :
+                            document.getElementById('editCoordinateDisplay');
+                        const coordsElement = latInputId === 'latitude' ?
+                            document.getElementById('displayCoords') :
+                            document.getElementById('editDisplayCoords');
+
+                        displayElement.style.display = 'flex';
+                        coordsElement.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+                        showMessage(`✅ Current location pinned! (${lat.toFixed(4)}, ${lng.toFixed(4)})`, 'success');
+
+                        locationBtn.disabled = false;
+                        locationBtn.innerHTML = originalButtonHtml;
+                    },
+                    (error) => {
+                        console.error("Geolocation error:", error);
+                        let errorMessage = 'Failed to get location. Please try map selection.';
+                        if (error.code === error.PERMISSION_DENIED) {
+                            errorMessage = '🚫 Location access denied. Enable location services and try again.';
+                        } else if (error.code === error.POSITION_UNAVAILABLE) {
+                            errorMessage = '⚠️ Location information is unavailable.';
+                        } else if (error.code === error.TIMEOUT) {
+                            errorMessage = '⏳ Location request timed out. Please try again.';
+                        }
+                        showMessage(errorMessage, 'error');
+
+                        locationBtn.disabled = false;
+                        locationBtn.innerHTML = originalButtonHtml;
+                    },
+                    { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+                );
+            } else {
+                showMessage('❌ Geolocation is not supported by this browser.', 'error');
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Check authentication
             if (!isAuthenticated()) {
                 window.location.href = 'login.html';
                 return;
             }
 
-            // Initialize dashboard
             initializeTabs();
             loadUserProperties();
             loadUserPortfolio();
 
-            // Form event listeners
             document.getElementById('propertyForm').addEventListener('submit', handleAddProperty);
             document.getElementById('portfolioForm').addEventListener('submit', handleSavePortfolio);
-            // UPDATED EVENT LISTENER
             document.getElementById('editPropertyForm').addEventListener('submit', handleEditProperty);
         });
 
@@ -506,15 +848,12 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
             });
         }
 
-        // switchTab definition moved up for better scope/order
-
         async function loadUserProperties() {
             const loadingElement = document.getElementById('propertiesLoading');
             const propertiesContainer = document.getElementById('userProperties');
 
             try {
                 const properties = await makeRequest('/properties/my-properties', 'GET');
-
                 loadingElement.style.display = 'none';
 
                 if (properties.length === 0) {
@@ -534,7 +873,7 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                             <h3>${property.title}</h3>
                             <p class="property-description">${property.description}</p>
                             <div class="property-details">
-                                <span class="property-price">$${Number(property.price).toLocaleString()}</span>
+                                <span class="property-price">${Number(property.price).toLocaleString()}</span>
                                 <span class="property-location"><i class="fas fa-map-marker-alt"></i> ${property.location}</span>
                             </div>
                             <div class="property-actions">
@@ -556,7 +895,6 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
             }
         }
 
-
         async function loadUserPortfolio() {
             const loadingElement = document.getElementById('portfolioLoading');
             const portfolioContainer = document.getElementById('userPortfolios');
@@ -571,8 +909,6 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                 }
 
                 portfolioContainer.innerHTML = portfolios.map(p => {
-
-
                     return `
                     <div class="portfolio-card">
                     <div class="portfolio-main" onclick="viewPortfolio(${p.id})" style="cursor:pointer;">
@@ -588,7 +924,6 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                             <i class="fas fa-briefcase"></i>
                             ${p.category || 'Uncategorized'}
                             </p>
-
                         </div>
                         </div>
                         <p class="portfolio-description">${p.description || ''}</p>
@@ -597,7 +932,6 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                         <span><i class="fas fa-eye"></i> ${p.isPublic ? 'Public' : 'Private'}</span>
                         </div>
                     </div>
-
                     <div class="portfolio-actions">
                         <button class="btn btn-outline btn-sm" onclick="editPortfolio(${p.id}, event)">
                         <i class="fas fa-edit"></i> Edit
@@ -617,30 +951,23 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
         }
 
         function viewProperty(propertyId) {
-            // Redirects to property-detail.html, passing the ID as a query parameter
             window.location.href = `property-detail.html?id=${propertyId}`;
         }
-        // Redirect to details page
+
         function viewPortfolio(portfolioId) {
-            // Correctly points to the portfolio-detail.html file
-            // and passes the ID as a query parameter
             window.location.href = `portfolio-detail.html?id=${portfolioId}`;
         }
-        // Stop bubbling so clicking "Edit" or "Delete" won't trigger viewPortfolio()
+
         function editPortfolio(id, event) {
             event.stopPropagation();
             showMessage("Edit Portfolio clicked for ID: " + id, "info");
-            // TODO: open edit modal for portfolio
         }
 
-        async function deletePortfolio(id, event) { // The parameter is 'id', not 'portfolioId'
+        async function deletePortfolio(id, event) {
             event.stopPropagation();
-            // Using a custom modal is required instead of confirm(), but using confirm() for now
-            // until a modal UI component is available in this file.
             if (!confirm("Are you sure you want to delete this portfolio?")) return;
 
             try {
-                // Use the correct 'id' variable in the request URL
                 await makeRequest(`/portfolio/${id}`, 'DELETE', null, true);
                 showMessage("Portfolio deleted successfully!", "success");
                 loadUserPortfolio();
@@ -648,7 +975,6 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                 showMessage("Failed to delete portfolio: " + err.message, "error");
             }
         }
-
 
         async function handleAddProperty(event) {
             event.preventDefault();
@@ -665,7 +991,6 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                 const form = event.target;
                 const formData = new FormData();
 
-                // Read latitude and longitude from visible inputs
                 const latitudeInput = document.getElementById('latitude');
                 const longitudeInput = document.getElementById('longitude');
 
@@ -673,11 +998,10 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                 const longitude = parseFloat(longitudeInput.value);
 
                 if (isNaN(latitude) || isNaN(longitude)) {
-                    showMessage('Latitude and Longitude must be valid numbers.', 'error');
+                    showMessage('Please select a valid location using the map or GPS.', 'error');
                     return;
                 }
 
-                // Property object as JSON blob
                 const property = {
                     title: form.title.value,
                     address: form.Address.value,
@@ -695,17 +1019,16 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
 
                 formData.append("property", new Blob([JSON.stringify(property)], { type: "application/json" }));
 
-                // Append images
                 const files = form.images.files;
                 for (let i = 0; i < files.length; i++) {
                     formData.append("images", files[i]);
                 }
 
-                // Send request (multipart/form-data)
                 await makeRequest('/properties', 'POST', formData, true, true);
 
                 showMessage('Property added successfully!', 'success');
                 form.reset();
+                document.getElementById('coordinateDisplay').style.display = 'none';
                 loadUserProperties();
                 switchTab('properties');
 
@@ -717,7 +1040,6 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                 submitBtn.disabled = false;
             }
         }
-
 
         async function handleSavePortfolio(event) {
             event.preventDefault();
@@ -767,27 +1089,19 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
             }
         }
 
-        // NEW UTILITY FUNCTION TO MARK IMAGE FOR DELETION
         function removeImage(imageContainer, imageUrl) {
-            // 1. Mark the URL for deletion on form submission
             const deleteInput = document.getElementById('imagesToDelete');
             const urlsToDelete = deleteInput.value ? deleteInput.value.split(',') : [];
-
-            // Add the image URL (key) to the list
             urlsToDelete.push(imageUrl);
             deleteInput.value = urlsToDelete.join(',');
-
-            // 2. Hide the image visually
             imageContainer.style.display = 'none';
             showMessage('Image marked for removal on save.', 'info');
         }
 
-        // UPDATED: LOADS ALL FIELDS
         async function editProperty(propertyId) {
             try {
                 const property = await makeRequest(`/properties/${propertyId}`, 'GET');
 
-                // Populate basic text/number fields
                 document.getElementById('editPropertyId').value = property.id;
                 document.getElementById('editTitle').value = property.title;
                 document.getElementById('editDescription').value = property.description;
@@ -799,24 +1113,28 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                 document.getElementById('editLatitude').value = property.latitude;
                 document.getElementById('editLongitude').value = property.longitude;
 
-                // Populate dropdowns
                 document.getElementById('editFacing').value = property.facing;
                 document.getElementById('editPropType').value = property.prop_type;
                 document.getElementById('editType').value = property.type;
 
-                // Reset image deletion tracker and new image input
+                // Show coordinate display if values exist
+                if (property.latitude && property.longitude) {
+                    const displayElement = document.getElementById('editCoordinateDisplay');
+                    const coordsElement = document.getElementById('editDisplayCoords');
+                    displayElement.style.display = 'flex';
+                    coordsElement.textContent = `${parseFloat(property.latitude).toFixed(4)}, ${parseFloat(property.longitude).toFixed(4)}`;
+                }
+
                 document.getElementById('imagesToDelete').value = '';
                 document.getElementById('editImages').value = '';
 
-                // Handle existing images
                 const existingImagesContainer = document.getElementById('editExistingImages');
-                existingImagesContainer.innerHTML = ''; // Clear previous images
+                existingImagesContainer.innerHTML = '';
 
                 if (property.imageUrls && property.imageUrls.length > 0) {
                     property.imageUrls.forEach(urlKey => {
                         const imgContainer = document.createElement('div');
                         imgContainer.className = 'existing-image-item';
-                        // Assumes getImageUrl function generates the full path
                         imgContainer.innerHTML = `
                             <img src="${getImageUrl(urlKey)}" alt="Property Image">
                             <button type="button" class="remove-image-btn" onclick="removeImage(this.parentNode, '${urlKey}')">
@@ -836,7 +1154,6 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
             }
         }
 
-        // UPDATED: SUBMITS ALL FIELDS AND HANDLES IMAGE DELETION/ADDITION
         async function handleEditProperty(event) {
             event.preventDefault();
 
@@ -853,10 +1170,8 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                 const form = event.target;
                 const formData = new FormData();
 
-                // 1. Get image deletion list
                 const imagesToDelete = document.getElementById('imagesToDelete').value;
 
-                // 2. Create updated property object
                 const updatedProperty = {
                     title: form.title.value,
                     address: form.Address.value,
@@ -870,25 +1185,21 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
                     type: form.type.value,
                     latitude: parseFloat(form.latitude.value),
                     longitude: parseFloat(form.longitude.value),
-                    // The imagesToDelete field tells the backend which existing images to remove
                     imagesToDelete: imagesToDelete ? imagesToDelete.split(',') : []
                 };
 
-                // Append the JSON property object to FormData
                 formData.append("property", new Blob([JSON.stringify(updatedProperty)], { type: "application/json" }));
 
-                // 3. Append new images (if any)
                 const newFiles = form.images.files;
                 for (let i = 0; i < newFiles.length; i++) {
                     formData.append("images", newFiles[i]);
                 }
 
-                // Send PUT request as multipart/form-data
                 await makeRequest(`/properties/${propertyId}`, 'PUT', formData, true, true);
 
                 showMessage('Property updated successfully!', 'success');
                 closeEditModal();
-                loadUserProperties(); // Refresh the list
+                loadUserProperties();
 
             } catch (error) {
                 showMessage('Failed to update property: ' + error.message, 'error');
@@ -900,8 +1211,6 @@ function selectLocation(latInputId = 'latitude', lngInputId = 'longitude') {
         }
 
         async function deleteProperty(propertyId) {
-            // Using a custom modal is required instead of confirm(), but using confirm() for now
-            // until a modal UI component is available in this file.
             if (confirm('Are you sure you want to delete this property?')) {
                 try {
                     await makeRequest(`/properties/${propertyId}`, 'DELETE');

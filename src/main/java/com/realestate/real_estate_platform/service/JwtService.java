@@ -11,9 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -22,9 +22,18 @@ public class JwtService {
     private final String SECRET_KEY = "FreelancerPlatform2024SuperSecretKey!@#"; // Change to env var or config in real apps
 
     public String generateToken(UserDetails userDetails) {
+        // Use a map to hold extra claims
+        Map<String, Object> claims = new HashMap<>();
+
+        // ⬅️ CRITICAL FIX: Add the numeric user ID to the JWT claims
+        if (userDetails instanceof CustomUserDetails customUserDetails) {
+            claims.put("userId", customUserDetails.getId());
+        }
+
         return Jwts.builder()
+                .setClaims(claims) // Set the claims map
                 .setSubject(userDetails.getUsername())
-                .claim("authorities", userDetails.getAuthorities())
+                .claim("authorities", userDetails.getAuthorities()) // Add other claims separately
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hrs
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)

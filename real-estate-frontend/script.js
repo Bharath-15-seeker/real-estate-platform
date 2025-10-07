@@ -8,17 +8,64 @@ function getAuthToken() {
 
 function isAuthenticated() {
     const token = getAuthToken();
-    if (!token) return false;
-    
+    if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
+        // Token is missing, not a string, or not in the expected JWT format
+        return false;
+    }
+
     try {
-        // Basic token validation (check if it's expired)
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        // 1. Get the payload part
+        const payloadBase64 = token.split('.')[1];
+
+        // 2. Decode the payload
+        const payloadString = atob(payloadBase64);
+
+        // 3. Parse the payload
+        const payload = JSON.parse(payloadString);
+
+        // 4. Validate expiration time
         const now = Date.now() / 1000;
         return payload.exp > now;
     } catch (error) {
-        // Invalid token format
+        // This catches any error during atob or JSON.parse
+        console.error('Token validation failed due to invalid format or parsing error:', error);
         localStorage.removeItem('jwt_token');
         return false;
+    }
+}
+
+function getCurrentUserId() {
+    if (!isAuthenticated()) return null;
+
+    try {
+        const token = getAuthToken();
+        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        // --- START OF ID EXTRACTION FIX ---
+
+        // 1. Try to get the numeric ID provided by the backend first
+        let userId = payload.userId || payload.id;
+
+        // 2. If the numeric ID is missing, fall back to parsing the 'sub' claim (the email)
+        if (!userId && payload.sub && typeof payload.sub === 'string') {
+            const sub = payload.sub;
+            // Assuming the ID is the numeric part before the '@'
+            if (sub.includes('@')) {
+                userId = sub.split('@')[0];
+            } else {
+                // If 'sub' is just the ID string (not email), use it directly
+                userId = sub;
+            }
+        }
+
+        // The return value will be the ID string (e.g., "23335") or null
+        return userId;
+
+        // --- END OF ID EXTRACTION FIX ---
+
+    } catch (error) {
+        console.error('Failed to get user ID from token:', error);
+        return null;
     }
 }
 
@@ -33,7 +80,7 @@ function logout() {
 function updateNavigation() {
     const authButtons = document.getElementById('authButtons');
     const userMenu = document.getElementById('userMenu');
-    
+
     if (isAuthenticated()) {
         if (authButtons) authButtons.style.display = 'none';
         if (userMenu) userMenu.style.display = 'flex';
@@ -51,15 +98,16 @@ async function makeRequest(endpoint, method = 'GET', data = null, requireAuth = 
 
     // Add auth header if needed
     if (requireAuth && isAuthenticated()) {
+        if (!options.headers) options.headers = {};
         options.headers['Authorization'] = `Bearer ${getAuthToken()}`;
     }
 
     // Handle body
     if (data && (method === 'POST' || method === 'PUT')) {
         if (isMultipart) {
-            // ✅ Don't set Content-Type manually (browser will do it)
             options.body = data;
         } else {
+            if (!options.headers) options.headers = {};
             options.headers['Content-Type'] = 'application/json';
             options.body = JSON.stringify(data);
         }
@@ -85,11 +133,26 @@ async function makeRequest(endpoint, method = 'GET', data = null, requireAuth = 
         }
 
         const contentType = response.headers.get('content-type');
+
+        // 1. If the response content type is not JSON, check for no content
         if (!contentType || !contentType.includes('application/json')) {
-            return null;
+             if (response.status === 204 || response.headers.get('Content-Length') === '0') {
+                 return null; // Handle successful empty response (e.g., 204 No Content)
+            }
+            // If there's content but it's not JSON, we may need to consume it to avoid leaks
+             const text = await response.text();
+             console.error("Non-JSON response received:", text);
+             throw new Error(`Expected JSON but received ${contentType || 'no content type'}. Response text: ${truncateText(text, 50)}`);
         }
 
-        return await response.json();
+        // 2. Safely parse the JSON response.
+        try {
+            return await response.json();
+        } catch (e) {
+            console.error("Failed to parse JSON response:", e);
+            throw new Error("Invalid response format from server.");
+        }
+
     } catch (error) {
         console.error('Request failed:', error);
         if (!navigator.onLine) {

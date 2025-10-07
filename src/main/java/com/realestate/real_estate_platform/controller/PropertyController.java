@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -167,6 +168,14 @@ public class PropertyController {
         return ResponseEntity.ok(propertyService.getPropertiesByUser(user.getId()));
     }
 
+
+    @DeleteMapping("/properties/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<String> deleteProperty(@PathVariable Long id) {
+        propertyService.deletePropertyById(id);
+        return ResponseEntity.ok("Property deleted successfully.");
+    }
+    // This endpoint is mapped to: /api/admin/properties/{id}
     @DeleteMapping("/{propertyId}")
     public ResponseEntity<String> deleteProperty(@PathVariable Long propertyId,
                                                  Authentication authentication) {

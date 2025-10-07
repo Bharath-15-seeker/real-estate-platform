@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -28,6 +29,23 @@ public class UserService {
     private final ContactRepository contactRepo;
     private final FavoriteRepository favoriteRepository;
     private final ReviewRepository reviewRepository;
+
+    public UserDTO getUserByUsername(String username) {
+        Optional<User> userOptional = userRepo.findByEmail(username); // Assuming email is the username
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            // ⚡️ Crucial: Map the User entity to UserDTO, ensuring the ROLE is included
+            UserDTO dto = new UserDTO();
+            dto.setId(user.getId());
+            dto.setEmail(user.getEmail());
+            dto.setRole(user.getRole().name()); // Assuming role is an Enum in User entity
+            // ... set other fields
+
+            return dto;
+        }
+        return null;
+    }
 
     public BuyerDashboardDTO getDashboardData(String email) {
         User user = userRepo.findByEmail(email)

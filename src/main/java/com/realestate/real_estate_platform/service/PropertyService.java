@@ -287,4 +287,22 @@ public class PropertyService {
     public Optional<Property> getbypropertyId(Long id) {
         return propertyRepo.findById(id);
     }
+
+    @Transactional
+    public void deletePropertyById(Long id) {
+        Property property = propertyRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Property not found"));
+
+        if (property.getImageUrls() != null) {
+            for(String urlKey : property.getImageUrls()) {
+                try {
+                    deleteFile(urlKey);
+                } catch (IOException e) {
+                    System.err.println("Failed to delete property file during deletion: " + urlKey);
+                }
+            }
+        }
+        contactRepository.deleteByPropertyId(id);
+        propertyRepo.delete(property);
+    }
 }
