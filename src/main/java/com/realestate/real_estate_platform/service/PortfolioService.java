@@ -4,9 +4,7 @@ import com.realestate.real_estate_platform.dto.PortfolioDTO;
 import com.realestate.real_estate_platform.entity.Portfolio;
 import com.realestate.real_estate_platform.entity.Property;
 import com.realestate.real_estate_platform.entity.User;
-import com.realestate.real_estate_platform.repositories.ContactRepository;
-import com.realestate.real_estate_platform.repositories.PortfolioRepository;
-import com.realestate.real_estate_platform.repositories.UserRepository;
+import com.realestate.real_estate_platform.repositories.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +32,8 @@ public class PortfolioService {
 
     private final ContactRepository contactRepository;
 
+    private final ReviewRepository reviewRepository;
+    private final FavoriteRepository favoriteRepository;
     private final UserRepository userRepository;
     private final PortfolioRepository portfolioRepo;
 
@@ -267,6 +267,8 @@ public class PortfolioService {
             throw new AccessDeniedException("You are not the authorized person to delete");
         }
 
+        reviewRepository.deleteAllByPortfolioId(id);
+        favoriteRepository.deleteAllByPortfolioId(id);
         contactRepository.deleteByPortfolioId(id);
         portfolioRepo.delete(portfolio);
     }
@@ -276,7 +278,10 @@ public class PortfolioService {
         Portfolio portfolio = portfolioRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Portfolio not found"));
 
+        reviewRepository.deleteAllByPortfolioId(id);
         contactRepository.deleteByPortfolioId(id);
+        favoriteRepository.deleteAllByPortfolioId(id);
+
         portfolioRepo.delete(portfolio);
     }
 }

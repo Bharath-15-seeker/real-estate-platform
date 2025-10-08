@@ -166,20 +166,29 @@
     const btn = document.getElementById('favoriteBtn');
     btn.disabled = true;
 
+    // Define expected success messages for error interception
+    const expectedSuccessAddMessage = 'added to favorites';
+    const expectedSuccessRemoveMessage = 'removed from favorites';
+
     try {
         if (isFavorite) {
-            // Remove from favorites using actual favorite ID
+            // --- DELETE logic (Remove from favorites) ---
             if (!favoriteRecordId) throw new Error('Favorite ID not found');
             await makeRequest(`/favorites/${favoriteRecordId}`, 'DELETE', null, true);
+
+            // If try succeeds (204 or valid JSON)
             isFavorite = false;
             favoriteRecordId = null;
             btn.classList.remove('active');
             showMessage('Removed from favorites', 'success');
-        } else {
-            await makeRequest(`/favorites/${currentPropertyId}`, 'POST', null, true);
-            isFavorite = true;
 
-            // Fetch updated favorites to get the ID
+        } else {
+            // --- POST logic (Add to favorites) ---
+            await makeRequest(`/favorites/${currentPropertyId}`, 'POST', null, true);
+
+            // If try succeeds (204 or valid JSON)
+            isFavorite = true;
+            // Re-fetch to get the new favoriteRecordId
             const favorites = await makeRequest('/favorites', 'GET', null, true);
             const favorite = favorites.find(f => f.property && Number(f.property.id) === Number(currentPropertyId));
             favoriteRecordId = favorite ? favorite.id : null;
@@ -188,8 +197,41 @@
             showMessage('Added to favorites', 'success');
         }
     } catch (error) {
-        console.error('Failed to update favorites:', error);
-        showMessage('Failed to update favorites: ' + error.message, 'error');
+        // --- 🛑 THE FIX: Intercept the "success error" ---
+        const errorMessage = error.message ? error.message.toLowerCase() : '';
+        let isSuccessError = false;
+
+        if (isFavorite && errorMessage.includes(expectedSuccessRemoveMessage)) {
+            // Case 1: We were REMOVING (isFavorite was true), and the error contains "removed from favorites"
+            isSuccessError = true;
+            isFavorite = false;
+            favoriteRecordId = null;
+            btn.classList.remove('active');
+            showMessage('Removed from favorites', 'success');
+        }
+        else if (!isFavorite && errorMessage.includes(expectedSuccessAddMessage)) {
+            // Case 2: We were ADDING (isFavorite was false), and the error contains "added to favorites"
+            isSuccessError = true;
+            isFavorite = true;
+
+            // NOTE: We still need to fetch the favoriteRecordId after interception
+            // A full re-check is safer than just attempting a secondary POST.
+            try {
+                const favorites = await makeRequest('/favorites', 'GET', null, true);
+                const favorite = favorites.find(f => f.property && Number(f.property.id) === Number(currentPropertyId));
+                favoriteRecordId = favorite ? favorite.id : null;
+            } catch (fetchError) {
+                console.error("Failed to fetch favorite ID after intercepting success:", fetchError);
+            }
+
+            btn.classList.add('active');
+            showMessage('Added to favorites', 'success');
+        }
+
+        // If it wasn't one of the expected "success errors", it's a genuine failure
+        if (!isSuccessError) {
+            showMessage('Failed to update favorites: ' + error.message, 'error');
+        }
     } finally {
         btn.disabled = false;
     }

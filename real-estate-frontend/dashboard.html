@@ -625,6 +625,84 @@
             </form>
         </div>
     </div>
+    <!-- Edit Portfolio Modal -->
+    <div class="modal" id="editPortfolioModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Edit Portfolio</h3>
+                <span class="close" onclick="closeEditPortfolioModal()">&times;</span>
+            </div>
+            <form id="editPortfolioForm">
+                <input type="hidden" id="editPortfolioId" name="id">
+
+                <div class="form-group">
+                    <label for="editPortfolioTitle">Title</label>
+                    <input type="text" id="editPortfolioTitle" name="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPortfolioDescription">Description</label>
+                    <textarea id="editPortfolioDescription" name="description" rows="4" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPortfolioCategory">Category</label>
+                    <select id="editPortfolioCategory" name="category" required>
+                        <option value="ARCHITECT">Architect</option>
+                        <option value="DESIGNER">Designer</option>
+                        <option value="CIVIL_ENGINEER">Civil Engineer</option>
+                        <option value="CONTRACTOR">Contractor</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPortfolioExperience">Years of Experience</label>
+                    <input type="number" id="editPortfolioExperience" name="year_of_exp" min="0" max="50" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPortfolioPublic">Visibility</label>
+                    <select id="editPortfolioPublic" name="isPublic" required>
+                        <option value="true">Public</option>
+                        <option value="false">Private</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Current Profile Picture</label>
+                    <div id="editCurrentDP" class="existing-images-container"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="editDP">Change Profile Picture</label>
+                    <input type="file" id="editDP" name="dp" accept="image/*">
+                    <small class="form-help">Leave empty to keep current profile picture</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Current Work Images (Click 'Remove' to delete)</label>
+                    <div id="editCurrentWorkImages" class="existing-images-container"></div>
+                    <input type="hidden" id="workImagesToDelete" name="workImagesToDelete" value="">
+                </div>
+
+                <div class="form-group">
+                    <label for="editWorkImages">Add New Work Images</label>
+                    <input type="file" id="editWorkImages" name="workimages" multiple accept="image/*">
+                    <small class="form-help">Select additional work images to add</small>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="closeEditPortfolioModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="btn-text">Save Changes</span>
+                        <span class="btn-loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Saving...
+                    </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div id="messageContainer" class="message-container"></div>
 
@@ -823,20 +901,21 @@
             document.getElementById(`${tabName}-tab`).classList.add('active');
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            if (!isAuthenticated()) {
-                window.location.href = 'login.html';
-                return;
-            }
+       document.addEventListener('DOMContentLoaded', function() {
+    if (!isAuthenticated()) {
+        window.location.href = 'login.html';
+        return;
+    }
 
-            initializeTabs();
-            loadUserProperties();
-            loadUserPortfolio();
+    initializeTabs();
+    loadUserProperties();
+    loadUserPortfolio();
 
-            document.getElementById('propertyForm').addEventListener('submit', handleAddProperty);
-            document.getElementById('portfolioForm').addEventListener('submit', handleSavePortfolio);
-            document.getElementById('editPropertyForm').addEventListener('submit', handleEditProperty);
-        });
+    document.getElementById('propertyForm').addEventListener('submit', handleAddProperty);
+    document.getElementById('portfolioForm').addEventListener('submit', handleSavePortfolio);
+    document.getElementById('editPropertyForm').addEventListener('submit', handleEditProperty);
+    document.getElementById('editPortfolioForm').addEventListener('submit', handleEditPortfolio);  // ADD THIS LINE
+});
 
         function initializeTabs() {
             const tabButtons = document.querySelectorAll('.tab-button');
@@ -958,11 +1037,78 @@
             window.location.href = `portfolio-detail.html?id=${portfolioId}`;
         }
 
-        function editPortfolio(id, event) {
-            event.stopPropagation();
-            showMessage("Edit Portfolio clicked for ID: " + id, "info");
+        async function editPortfolio(portfolioId, event) {
+    event.stopPropagation();
+
+    try {
+        showMessage('Loading portfolio data...', 'info');
+
+        const portfolio = await makeRequest(`/portfolio/${portfolioId}`, 'GET');
+
+        document.getElementById('editPortfolioId').value = portfolio.id;
+        document.getElementById('editPortfolioTitle').value = portfolio.title;
+        document.getElementById('editPortfolioDescription').value = portfolio.description;
+        document.getElementById('editPortfolioCategory').value = portfolio.category;
+        document.getElementById('editPortfolioExperience').value = portfolio.year_of_exp;
+        document.getElementById('editPortfolioPublic').value = portfolio.isPublic.toString();
+
+        // Display current DP
+        const dpContainer = document.getElementById('editCurrentDP');
+        dpContainer.innerHTML = '';
+        if (portfolio.dp) {
+            dpContainer.innerHTML = `
+                <div class="existing-image-item">
+                    <img src="${getImageUrl(portfolio.dp)}" alt="Profile Picture">
+                    <p class="form-help">Current profile picture</p>
+                </div>
+            `;
+        } else {
+            dpContainer.innerHTML = '<p class="form-help">No profile picture set</p>';
         }
 
+        // Display current work images
+        const workImagesContainer = document.getElementById('editCurrentWorkImages');
+        workImagesContainer.innerHTML = '';
+        if (portfolio.workimages && portfolio.workimages.length > 0) {
+            portfolio.workimages.forEach((img) => {
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'existing-image-item';
+                imgContainer.innerHTML = `
+                    <img src="${getImageUrl(img)}" alt="Work Image">
+                    <button type="button" class="remove-image-btn" onclick="removeWorkImage(this.parentNode, '${img}')">
+                        <i class="fas fa-times"></i> Remove
+                    </button>
+                `;
+                workImagesContainer.appendChild(imgContainer);
+            });
+        } else {
+            workImagesContainer.innerHTML = '<p class="form-help">No work images</p>';
+        }
+
+        // Reset fields
+        document.getElementById('workImagesToDelete').value = '';
+        document.getElementById('editDP').value = '';
+        document.getElementById('editWorkImages').value = '';
+
+        document.getElementById('editPortfolioModal').style.display = 'block';
+
+    } catch (error) {
+        showMessage('Failed to load portfolio: ' + error.message, 'error');
+    }
+}
+
+function removeWorkImage(container, imageUrl) {
+    const deleteInput = document.getElementById('workImagesToDelete');
+    const urlsToDelete = deleteInput.value ? deleteInput.value.split(',') : [];
+    urlsToDelete.push(imageUrl);
+    deleteInput.value = urlsToDelete.join(',');
+    container.style.display = 'none';
+    showMessage('Image marked for removal on save.', 'info');
+}
+
+function closeEditPortfolioModal() {
+    document.getElementById('editPortfolioModal').style.display = 'none';
+}
         async function deletePortfolio(id, event) {
             event.stopPropagation();
             if (!confirm("Are you sure you want to delete this portfolio?")) return;
@@ -1154,6 +1300,65 @@
             }
         }
 
+async function handleEditPortfolio(event) {
+    event.preventDefault();
+
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const btnLoading = submitBtn.querySelector('.btn-loading');
+
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'inline-block';
+    submitBtn.disabled = true;
+
+    try {
+        const portfolioId = document.getElementById('editPortfolioId').value;
+        const form = event.target;
+        const formData = new FormData();
+
+        const workImagesToDelete = document.getElementById('workImagesToDelete').value;
+
+        console.log('Work images to delete:', workImagesToDelete); // Debug log
+
+        const updatedPortfolio = {
+            title: form.title.value,
+            description: form.description.value,
+            category: form.category.value,
+            year_of_exp: parseInt(form.year_of_exp.value),
+            isPublic: form.isPublic.value === "true",
+            imagesToDelete: workImagesToDelete ? workImagesToDelete.split(',') : []  // Changed from workImagesToDelete to imagesToDelete
+        };
+
+        console.log('Portfolio object:', updatedPortfolio); // Debug log
+
+        formData.append("portfolio", new Blob([JSON.stringify(updatedPortfolio)], { type: "application/json" }));
+
+        // Add new DP if selected
+        const dpFile = document.getElementById('editDP').files[0];
+        if (dpFile) {
+            formData.append("dp", dpFile);
+        }
+
+        // Add new work images
+        const workImageFiles = document.getElementById('editWorkImages').files;
+        for (let i = 0; i < workImageFiles.length; i++) {
+            formData.append("workimages", workImageFiles[i]);
+        }
+
+        await makeRequest(`/portfolio/${portfolioId}`, 'PUT', formData, true, true);
+
+        showMessage('Portfolio updated successfully!', 'success');
+        closeEditPortfolioModal();
+        loadUserPortfolio();
+
+    } catch (error) {
+        showMessage('Failed to update portfolio: ' + error.message, 'error');
+    } finally {
+        btnText.style.display = 'inline-block';
+        btnLoading.style.display = 'none';
+        submitBtn.disabled = false;
+    }
+}
         async function handleEditProperty(event) {
             event.preventDefault();
 

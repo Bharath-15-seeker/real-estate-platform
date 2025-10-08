@@ -20,5 +20,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Double findAverageRatingByPortfolioId(@Param("portfolioId") Long portfolioId);
 
 
+    void deleteAllByPortfolioId(Long id);
 }
 

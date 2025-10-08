@@ -14,41 +14,10 @@
         .favorite-btn-detail.active { color: #ef4444; background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
         .favorite-btn-detail.active:hover { background: #ef4444; color: white; }
 
-        .portfolio-reviews { margin-top: 30px; }
-        .average-rating { text-align: center; margin-bottom: 20px; background: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-        .average-rating .avg-stars { font-size: 28px; color: #e6b800; display: block; margin-bottom: 5px; }
-        .average-rating .avg-score { font-size: 18px; font-weight: bold; margin-right: 5px; }
-        .average-rating .review-count { font-size: 14px; color: #777; }
-
-        .review-card { background: #fff; border-radius: 8px; padding: 12px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
-        .review-card.my-review { border-left: 4px solid #4CAF50; background: #f0f9f0; }
-        .review-header { display: flex; align-items: center; margin-bottom: 8px; }
-        .review-avatar { width: 36px; height: 36px; border-radius: 50%; background: #4CAF50; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; margin-right: 10px; }
-        .review-meta { display: flex; flex-direction: column; flex: 1; }
-        .reviewer-name { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
-        .review-stars { color: #e6b800; font-size: 18px; letter-spacing: 1px; }
-        .review-date { color: #777; font-size: 11px; }
-        .review-body p { font-size: 15px; line-height: 1.4; margin: 0; }
-        .review-footer { margin-top: 8px; display: flex; gap: 8px; justify-content: flex-end; }
-        .review-footer .btn { padding: 6px 12px; font-size: 13px; }
-
-        .add-review { margin-top: 20px; background: #fff; border-radius: 10px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-        .add-review textarea, .add-review select { width: 100%; margin-bottom: 10px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
-        .read-more-btn { display: inline-block; margin-top: 10px; }
-
-        /* Edit Review Modal Styles */
-        .edit-review-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
-        .edit-review-modal-content { background-color: #fff; margin: 5% auto; padding: 0; border-radius: 12px; width: 90%; max-width: 600px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
-        .edit-review-modal-header { padding: 20px 24px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; border-radius: 12px 12px 0 0; }
-        .edit-review-modal-header h3 { margin: 0; font-size: 1.5rem; }
-        .edit-review-close { color: white; font-size: 32px; font-weight: bold; cursor: pointer; background: none; border: none; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background-color 0.2s; }
-        .edit-review-close:hover { background-color: rgba(255,255,255,0.2); }
-        .edit-review-modal-body { padding: 24px; }
-        .edit-review-modal-body textarea { width: 100%; min-height: 120px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; font-family: inherit; margin-bottom: 16px; resize: vertical; }
-        .edit-review-modal-body label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
-        .edit-review-modal-body select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; margin-bottom: 20px; }
-        .edit-review-modal-footer { padding: 16px 24px; border-top: 1px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 12px; background-color: #f9fafb; border-radius: 0 0 12px 12px; }
-        .edit-review-modal-footer .btn { padding: 10px 24px; }
+        .contact-owner-section { margin-top: 30px; text-align: left; padding: 20px; }
+        .contact-owner-btn { background: #3b82f6; color: white; padding: 12px 24px; font-size: 15px; font-weight: 500; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+        .contact-owner-btn:hover { background: #2563eb; }
+        .contact-owner-btn i { font-size: 16px; }
 
         @media (max-width:768px){ .favorite-btn-detail{top:1rem; right:1rem; width:45px; height:45px; font-size:1.25rem;} }
     </style>
@@ -93,188 +62,43 @@
     <div class="portfolio-detail" id="portfolioDetail" style="display: none;"></div>
 </div>
 
-<!-- Edit Review Modal -->
-<div id="editReviewModal" class="edit-review-modal">
-    <div class="edit-review-modal-content">
-        <div class="edit-review-modal-header">
-            <h3><i class="fas fa-edit"></i> Edit Review</h3>
-            <button class="edit-review-close" onclick="closeEditReviewModal()">&times;</button>
-        </div>
-        <div class="edit-review-modal-body">
-            <form id="editReviewForm">
-                <input type="hidden" id="editReviewId">
-
-                <label for="editReviewComment">Your Review</label>
-                <textarea id="editReviewComment" placeholder="Write your review..." required></textarea>
-
-                <label for="editReviewRating">Rating (1-5)</label>
-                <select id="editReviewRating" required>
-                    <option value="">Select rating</option>
-                    <option value="1">⭐ 1 - Poor</option>
-                    <option value="2">⭐⭐ 2 - Fair</option>
-                    <option value="3">⭐⭐⭐ 3 - Good</option>
-                    <option value="4">⭐⭐⭐⭐ 4 - Very Good</option>
-                    <option value="5">⭐⭐⭐⭐⭐ 5 - Excellent</option>
-                </select>
-            </form>
-        </div>
-        <div class="edit-review-modal-footer">
-            <button class="btn btn-outline" onclick="closeEditReviewModal()">Cancel</button>
-            <button class="btn btn-primary" onclick="submitEditReview()">
-                <i class="fas fa-save"></i> Save Changes
-            </button>
-        </div>
-    </div>
-</div>
-
 <div id="messageContainer" class="message-container"></div>
 
 <script src="script.js"></script>
 <script>
     let currentPortfolioId = null;
     let isFavorite = false;
+    let globalCurrentUserId = null;
 
-    document.addEventListener('DOMContentLoaded', function() {
+    async function fetchCurrentUserId() {
+        if (!isAuthenticated()) return null;
+
+        try {
+            const userProfile = await makeRequest('/user/profile', 'GET', null, true);
+
+            if (userProfile && userProfile.id) {
+                globalCurrentUserId = userProfile.id;
+                return userProfile.id;
+            }
+            return null;
+        } catch (error) {
+            console.error('Failed to fetch user profile:', error);
+            return null;
+        }
+    }
+
+    function getCurrentUserId() {
+        return globalCurrentUserId;
+    }
+
+    document.addEventListener('DOMContentLoaded', async function() {
       updateNavigation();
       if (isAuthenticated()) {
           document.getElementById('favoritesLink').style.display = 'block';
+          await fetchCurrentUserId();
       }
       loadPortfolioDetail();
     });
-
-
-
-    function renderAverageRating(reviews) {
-      const avgDiv = document.getElementById('averageRating');
-      if (!reviews.length) {
-        avgDiv.innerHTML = '<p>No reviews yet.</p>';
-        return;
-      }
-      const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-      const rounded = Math.round(avg);
-      avgDiv.querySelector('.avg-stars').innerHTML =
-        '★'.repeat(rounded) + '☆'.repeat(5 - rounded);
-      avgDiv.querySelector('.avg-score').textContent = avg.toFixed(1) + '/5';
-      avgDiv.querySelector('.review-count').textContent = `(${reviews.length} reviews)`;
-    }
-
-    function renderReviews(reviews, currentUserId) {
-      const reviewsList = document.getElementById('reviewsList');
-      const readMoreBtn = document.getElementById('readMoreBtn');
-      const limit = 3;
-      let showingAll = false;
-
-      const currentUserIdString = String(currentUserId);
-
-      const sortedReviews = [...reviews].sort((a, b) => {
-        const aIsCurrentUser = String(a.userId) === currentUserIdString;
-        const bIsCurrentUser = String(b.userId) === currentUserIdString;
-
-        if (aIsCurrentUser && !bIsCurrentUser) return -1;
-        if (!aIsCurrentUser && bIsCurrentUser) return 1;
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      });
-
-      function showReviews() {
-        const visibleReviews = showingAll ? sortedReviews : sortedReviews.slice(0, limit);
-        reviewsList.innerHTML = visibleReviews.map(r => {
-          const isCurrentUser = String(r.userId) === currentUserIdString;
-
-          return `
-            <div class="review-card ${isCurrentUser ? 'my-review' : ''}">
-              <div class="review-header">
-                <div class="review-avatar">
-                  <span>${r.reviewerName ? r.reviewerName.charAt(0).toUpperCase() : 'A'}</span>
-                </div>
-                <div class="review-meta">
-                  <strong class="reviewer-name">${r.reviewerName || 'Anonymous'} ${isCurrentUser ? '<span style="color: #4CAF50; font-size: 12px;">(You)</span>' : ''}</strong>
-                  <div class="review-stars">
-                    ${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}
-                  </div>
-                  <small class="review-date">${new Date(r.createdAt).toLocaleDateString()}</small>
-                </div>
-              </div>
-              <div class="review-body">
-                <p>${r.comment}</p>
-              </div>
-              ${isCurrentUser ? `
-              <div class="review-footer">
-                <button class="btn btn-outline btn-sm edit-review" data-id="${r.id}" data-comment="${encodeURIComponent(r.comment)}" data-rating="${r.rating}">
-                  <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="btn btn-danger btn-sm delete-review" data-id="${r.id}">
-                  <i class="fas fa-trash"></i> Delete
-                </button>
-              </div>` : ''}
-            </div>
-          `;
-        }).join('');
-
-        readMoreBtn.style.display = (sortedReviews.length > limit && !showingAll) ? 'inline-block' : 'none';
-
-        // Add event listeners for edit buttons
-        document.querySelectorAll('.edit-review').forEach(btn => {
-          btn.addEventListener('click', () => {
-            openEditReviewModal(
-              btn.dataset.id,
-              decodeURIComponent(btn.dataset.comment),
-              btn.dataset.rating
-            );
-          });
-        });
-
-        // Add event listeners for delete buttons
-        document.querySelectorAll('.delete-review').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            await deleteReview(btn.dataset.id);
-          });
-        });
-      }
-
-      readMoreBtn.onclick = () => {
-        showingAll = true;
-        showReviews();
-      };
-
-      showReviews();
-    }
-
-    function openEditReviewModal(reviewId, comment, rating) {
-      document.getElementById('editReviewId').value = reviewId;
-      document.getElementById('editReviewComment').value = comment;
-      document.getElementById('editReviewRating').value = rating;
-      document.getElementById('editReviewModal').style.display = 'block';
-    }
-
-    function closeEditReviewModal() {
-      document.getElementById('editReviewModal').style.display = 'none';
-      document.getElementById('editReviewForm').reset();
-    }
-
-    async function submitEditReview() {
-      const reviewId = document.getElementById('editReviewId').value;
-      const comment = document.getElementById('editReviewComment').value.trim();
-      const rating = document.getElementById('editReviewRating').value;
-
-      if (!comment || !rating) {
-        showMessage("Please fill in all fields.", "error");
-        return;
-      }
-
-      try {
-        const payload = {
-          comment: comment,
-          rating: parseInt(rating)
-        };
-
-        await makeRequest(`/reviews/${reviewId}`, 'PUT', payload, true);
-        showMessage("Review updated successfully!", "success");
-        closeEditReviewModal();
-        loadPortfolioDetail();
-      } catch (error) {
-        showMessage("Failed to update review. Try again.", "error");
-      }
-    }
 
     async function checkIfFavorite(portfolioId) {
         if (!isAuthenticated()) return false;
@@ -297,22 +121,58 @@
         }
 
         const btn = document.getElementById('favoriteBtn');
+        btn.disabled = true;
+
+        const expectedSuccessAddMessage = 'added to favorites';
+        const expectedSuccessRemoveMessage = 'removed from favorites';
+        const wasFavorite = isFavorite !== false;
 
         try {
-            if (isFavorite) {
+            if (wasFavorite) {
+                if (!isFavorite) throw new Error('Favorite ID not found');
                 await makeRequest(`/favorites/${isFavorite}`, 'DELETE', null, true);
+
                 isFavorite = false;
                 btn.classList.remove('active');
                 showMessage('Removed from favorites', 'success');
+
             } else {
                 await makeRequest(`/favorites/portfolio/${currentPortfolioId}`, 'POST', null, true);
+
                 const favoriteId = await checkIfFavorite(currentPortfolioId);
                 isFavorite = favoriteId;
                 btn.classList.add('active');
                 showMessage('Added to favorites', 'success');
             }
         } catch (error) {
-            showMessage('Failed to update favorites: ' + error.message, 'error');
+            const errorMessage = error.message ? error.message.toLowerCase() : '';
+            let isSuccessError = false;
+
+            if (wasFavorite && errorMessage.includes(expectedSuccessRemoveMessage)) {
+                isSuccessError = true;
+                isFavorite = false;
+                btn.classList.remove('active');
+                showMessage('Removed from favorites', 'success');
+            }
+            else if (!wasFavorite && errorMessage.includes(expectedSuccessAddMessage)) {
+                isSuccessError = true;
+
+                try {
+                    const favoriteId = await checkIfFavorite(currentPortfolioId);
+                    isFavorite = favoriteId;
+                } catch (fetchError) {
+                    console.error("Failed to fetch favorite ID after intercepting success:", fetchError);
+                }
+
+                btn.classList.add('active');
+                showMessage('Added to favorites', 'success');
+            }
+
+            if (!isSuccessError) {
+                showMessage('Failed to update favorites: ' + error.message, 'error');
+            }
+        } finally {
+            btn.disabled = false;
         }
     }
 
@@ -327,7 +187,6 @@
 
       try {
         const portfolio = await makeRequest(`/portfolio/${portfolioId}`, 'GET', null, true);
-        const reviews = await makeRequest(`/reviews/${portfolioId}`, 'GET', null, true);
 
         if (isAuthenticated()) {
             isFavorite = await checkIfFavorite(portfolioId);
@@ -370,55 +229,14 @@
               </div>
             </div>` : '<p class="empty-state">No work images uploaded.</p>'}
 
-            <div class="portfolio-reviews">
-              <h2>Reviews</h2>
-              <div class="average-rating" id="averageRating">
-                <span class="avg-stars"></span>
-                <span class="avg-score"></span>
-                <span class="review-count"></span>
-              </div>
-              <div id="reviewsList"></div>
-              <div style="text-align:center;">
-                <button id="readMoreBtn" class="btn btn-outline read-more-btn" style="display:none;">Read More Reviews</button>
-              </div>
+            <div class="contact-owner-section">
+              <a href="contact.html?portfolioId=${portfolioId}" class="contact-owner-btn">
+                <i class="fas fa-envelope"></i>
+                Contact Owner
+              </a>
             </div>
-
-            ${isAuthenticated() ? `
-            <div class="add-review">
-              <h3>Write a Review</h3>
-              <form id="reviewForm">
-                <textarea id="reviewComment" placeholder="Write your review..." required></textarea>
-                <label for="reviewRating">Rating (1-5):</label>
-                <select id="reviewRating" required>
-                  <option value="">Select rating</option>
-                  <option value="1">⭐ 1 - Poor</option>
-                  <option value="2">⭐⭐ 2 - Fair</option>
-                  <option value="3">⭐⭐⭐ 3 - Good</option>
-                  <option value="4">⭐⭐⭐⭐ 4 - Very Good</option>
-                  <option value="5">⭐⭐⭐⭐⭐ 5 - Excellent</option>
-                </select>
-                <button type="submit" class="btn btn-primary">Submit Review</button>
-              </form>
-            </div>` : `
-            <div class="add-review">
-              <p style="text-align: center; color: #666;">
-                <i class="fas fa-sign-in-alt"></i>
-                <a href="login.html" style="color: #3b82f6; text-decoration: underline;">Login</a> to write a review
-              </p>
-            </div>`}
           </div>
         `;
-
-        renderAverageRating(reviews);
-        renderReviews(reviews, getCurrentUserId());
-
-        const reviewForm = document.getElementById('reviewForm');
-        if (reviewForm) {
-          reviewForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            await submitReview();
-          });
-        }
 
       } catch (error) {
         loadingElement.style.display = 'none';
@@ -429,41 +247,6 @@
             <p>The portfolio you're looking for doesn't exist or has been removed.</p>
             <a href="portfolios.html" class="btn btn-primary">Back to Portfolios</a>
           </div>`;
-      }
-    }
-
-    async function submitReview() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const portfolioId = urlParams.get('id');
-      const comment = document.getElementById('reviewComment').value.trim();
-      const rating = document.getElementById('reviewRating').value;
-      if (!comment || !rating) { showMessage("Please fill in all fields.", "error"); return; }
-      try {
-        const payload = { portfolioId: portfolioId, comment: comment, rating: parseInt(rating) };
-        await makeRequest('/reviews', 'POST', payload, true);
-        showMessage("Review submitted successfully!", "success");
-        loadPortfolioDetail();
-      } catch (error) {
-        showMessage("Failed to submit review. Try again.", "error");
-      }
-    }
-
-    async function deleteReview(reviewId) {
-      if (!confirm("Are you sure you want to delete this review?")) return;
-      try {
-        await makeRequest(`/reviews/${reviewId}`, 'DELETE', null, true);
-        showMessage("Review deleted successfully!", "success");
-        loadPortfolioDetail();
-      } catch (error) {
-        showMessage("Failed to delete review. Try again.", "error");
-      }
-    }
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-      const modal = document.getElementById('editReviewModal');
-      if (event.target === modal) {
-        closeEditReviewModal();
       }
     }
 </script>

@@ -92,17 +92,17 @@ function updateNavigation() {
 
 // HTTP Request Function
 async function makeRequest(endpoint, method = 'GET', data = null, requireAuth = true, isMultipart = false) {
+    // Assuming you have this defined globally
     const url = `${API_BASE_URL}${endpoint}`;
 
     const options = { method, headers: {} };
 
-    // Add auth header if needed
+    // --- Authentication and Content-Type Handling ---
     if (requireAuth && isAuthenticated()) {
         if (!options.headers) options.headers = {};
         options.headers['Authorization'] = `Bearer ${getAuthToken()}`;
     }
 
-    // Handle body
     if (data && (method === 'POST' || method === 'PUT')) {
         if (isMultipart) {
             options.body = data;
@@ -116,8 +116,10 @@ async function makeRequest(endpoint, method = 'GET', data = null, requireAuth = 
     try {
         const response = await fetch(url, options);
 
+        // --- Handle HTTP Error Status (4xx, 5xx) ---
         if (!response.ok) {
             if (response.status === 401) {
+                // Assuming localStorage, showMessage, and login.html redirect functions exist
                 localStorage.removeItem('jwt_token');
                 showMessage('Session expired. Please login again.', 'error');
                 setTimeout(() => { window.location.href = 'login.html'; }, 2000);
@@ -126,32 +128,52 @@ async function makeRequest(endpoint, method = 'GET', data = null, requireAuth = 
 
             let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
             try {
+                // Try to extract JSON error message
                 const errorData = await response.json();
                 errorMessage = errorData.message || errorData.error || errorMessage;
-            } catch (e) {}
+            } catch (e) {
+                // If it's not JSON, fall back to plain text (or ignore if empty)
+                const text = await response.text();
+                errorMessage = text || errorMessage;
+            }
             throw new Error(errorMessage);
         }
 
+        // --- Handle Successful Response (2xx) ---
         const contentType = response.headers.get('content-type');
 
-        // 1. If the response content type is not JSON, check for no content
-        if (!contentType || !contentType.includes('application/json')) {
-             if (response.status === 204 || response.headers.get('Content-Length') === '0') {
-                 return null; // Handle successful empty response (e.g., 204 No Content)
-            }
-            // If there's content but it's not JSON, we may need to consume it to avoid leaks
-             const text = await response.text();
-             console.error("Non-JSON response received:", text);
-             throw new Error(`Expected JSON but received ${contentType || 'no content type'}. Response text: ${truncateText(text, 50)}`);
+        // 1. Check for No Content (204 is common for successful DELETE)
+        if (response.status === 204 || response.headers.get('Content-Length') === '0') {
+            return null;
         }
 
-        // 2. Safely parse the JSON response.
-        try {
-            return await response.json();
-        } catch (e) {
-            console.error("Failed to parse JSON response:", e);
-            throw new Error("Invalid response format from server.");
+        // 2. Check for JSON Content
+        if (contentType && contentType.includes('application/json')) {
+            try {
+                return await response.json();
+            } catch (e) {
+                console.error("Failed to parse JSON response:", e);
+                throw new Error("Invalid JSON format from server.");
+            }
         }
+
+        // 3. Handle Non-JSON Content (THE CORRECTION)
+        const text = await response.text();
+        const lowerText = text.toLowerCase();
+
+        // Check if the plain text content indicates success (e.g., "Property deleted successfully!")
+        if (lowerText.includes('success') || lowerText.includes('ok')) {
+             // If the server sent a successful status (200) with a plain text success message,
+             // treat it as successful and return the message.
+             console.warn("Non-standard plain text success response received. Treating as success.");
+             return { message: text };
+        }
+
+        // If it's non-JSON, not empty, and doesn't clearly indicate success, throw an error.
+        console.error("Unexpected non-JSON response received:", text);
+        // Assuming truncateText is defined elsewhere
+        throw new Error(`Expected JSON but received ${contentType || 'no content type'}. Response text: ${truncateText(text, 50)}`);
+
 
     } catch (error) {
         console.error('Request failed:', error);
@@ -161,8 +183,6 @@ async function makeRequest(endpoint, method = 'GET', data = null, requireAuth = 
         throw error;
     }
 }
-
-
 // Message Display Functions
 function showMessage(message, type = 'info') {
     const container = document.getElementById('messageContainer');

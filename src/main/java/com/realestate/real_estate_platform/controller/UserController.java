@@ -35,6 +35,7 @@ public class UserController {
         // The returned UserDTO must contain the role property (e.g., "role": "ADMIN")
         return ResponseEntity.ok(userProfile);
     }
+
     @GetMapping("/dashboard")
     @PreAuthorize("hasAuthority('USER')")
     public ResponseEntity<BuyerDashboardDTO> getBuyerDashboard(Authentication authentication) {

@@ -340,16 +340,35 @@
     }
 
     async function removeFavorite(favoriteId, type) {
-        if (!confirm('Remove from favorites?')) return;
+    if (!confirm('Remove from favorites?')) return;
 
-        try {
-            await makeRequest(`/favorites/${favoriteId}`, 'DELETE', null, true);
-            showMessage('Removed from favorites', 'success');
-            loadFavorites();
-        } catch (error) {
-            showMessage('Failed to remove favorite: ' + error.message, 'error');
+    try {
+        // Attempt the DELETE request. This is the line that throws the "fake" error.
+        await makeRequest(`/favorites/${favoriteId}`, 'DELETE', null, true);
+
+        // If it reaches here, the server either returned 204 or valid JSON.
+        showMessage('Removed from favorites', 'success');
+        loadFavorites();
+
+    } catch (error) {
+        // --- 🛑 THE FIX: Intercept the "success error" ---
+        const errorMessage = error.message ? error.message.toLowerCase() : '';
+        const expectedSuccessMessage = 'removed from favorites'; // The text from the screenshot
+
+        if (errorMessage.includes(expectedSuccessMessage) || errorMessage.includes('property deleted successfully')) {
+             // If the error message contains the expected success text, treat it as a success.
+             console.warn('Caught non-standard success response. Treating as success.');
+             showMessage('Removed from favorites', 'success');
+
+             // Manually update the list after the successful removal.
+             loadFavorites();
+             return;
         }
+
+        // If it's not the intercepted success, it's a genuine failure.
+        showMessage('Failed to remove favorite: ' + error.message, 'error');
     }
+}
 
     function viewProperty(propertyId) {
         window.location.href = `property-detail.html?id=${propertyId}`;

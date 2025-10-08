@@ -53,17 +53,37 @@
           border: none;
           cursor: pointer;
           transition: 0.3s;
+          position: relative;
         }
         button:hover {
           background: #0056b3;
         }
-        .success, .error {
+        button:disabled {
+          background: #6c757d;
+          cursor: not-allowed;
+        }
+        .success, .error, .loading {
           text-align: center;
           margin-top: 10px;
           font-weight: bold;
         }
         .success { color: green; }
         .error { color: red; }
+        .loading { color: #007BFF; }
+        .spinner {
+          display: inline-block;
+          width: 14px;
+          height: 14px;
+          border: 2px solid #fff;
+          border-top-color: transparent;
+          border-radius: 50%;
+          animation: spin 0.6s linear infinite;
+          margin-left: 8px;
+          vertical-align: middle;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -91,71 +111,96 @@
         <textarea id="message" name="message" required placeholder="Write your message here..."></textarea>
     </div>
 
-    <!-- Optional: Hidden fields for property or portfolio -->
     <input type="hidden" id="propertyId" name="propertyId" value="">
     <input type="hidden" id="portfolioId" name="portfolioId" value="">
 
-    <button type="submit">Send Message</button>
+    <button type="submit" id="submitBtn">Send Message</button>
     <div id="formResponse"></div>
 </form>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const propertyId = urlParams.get('propertyId');
-    const portfolioId = urlParams.get('portfolioId');
-    const returnUrl = urlParams.get('returnUrl'); // 🔥 new
+        const urlParams = new URLSearchParams(window.location.search);
+        const propertyId = urlParams.get('propertyId');
+        const portfolioId = urlParams.get('portfolioId');
+        const returnUrl = urlParams.get('returnUrl');
 
-    document.getElementById('contactForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
+        const submitBtn = document.getElementById('submitBtn');
+        const formResponse = document.getElementById('formResponse');
 
-        const formData = {
-            name: document.getElementById('name').value,
-            email: document.getElementById('email').value,
-            phone: document.getElementById('phone').value,
-            message: document.getElementById('message').value
-        };
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-        let endpoint = "";
-        if (propertyId) {
-            endpoint = `http://localhost:8081/api/contact/property/${propertyId}`;
-        } else if (portfolioId) {
-            endpoint = `http://localhost:8081/api/contact/portfolio/${portfolioId}`;
-        } else {
-            document.getElementById('formResponse').innerHTML = "<p class='error'>No property or portfolio specified.</p>";
-            return;
-        }
+            // Show loading state immediately
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Sending<span class="spinner"></span>';
+            formResponse.innerHTML = '';
 
-        try {
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData)
-            });
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                message: document.getElementById('message').value
+            };
 
-            if (response.ok) {
-                document.getElementById('formResponse').innerHTML = "<p class='success'>Message sent! Redirecting...</p>";
-                setTimeout(() => {
-                    if (returnUrl) {
-                        window.location.href = returnUrl; // 🔥 back to portfolio-detail
-                    } else if (propertyId) {
-                        window.location.href = `property-detail.html?id=${propertyId}&msg=success`;
-                    } else if (portfolioId) {
-                        window.location.href = `portfolio-detail.html?id=${portfolioId}&msg=success`;
-                    }
-                }, 1000);
+            let endpoint = "";
+            if (propertyId) {
+                endpoint = `http://localhost:8081/api/contact/property/${propertyId}`;
+            } else if (portfolioId) {
+                endpoint = `http://localhost:8081/api/contact/portfolio/${portfolioId}`;
             } else {
-                const error = await response.json();
-                document.getElementById('formResponse').innerHTML =
-                    "<p class='error'>Error: " + (error.message || "Failed to send") + "</p>";
+                formResponse.innerHTML = "<p class='error'>No property or portfolio specified.</p>";
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Send Message';
+                return;
             }
-        } catch (err) {
-            document.getElementById('formResponse').innerHTML = "<p class='error'>Server error. Try again later.</p>";
-            console.error(err);
-        }
-    });
-});
 
+            try {
+                // Add timeout to prevent hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    formResponse.innerHTML = "<p class='success'>✓ Message sent successfully!</p>";
+                    submitBtn.innerHTML = 'Redirecting...';
+
+                    // Redirect immediately after showing success
+                    setTimeout(() => {
+                        if (returnUrl) {
+                            window.location.href = returnUrl;
+                        } else if (propertyId) {
+                            window.location.href = `property-detail.html?id=${propertyId}`;
+                        } else if (portfolioId) {
+                            window.location.href = `portfolio-detail.html?id=${portfolioId}`;
+                        }
+                    }, 500); // Reduced from 1000ms to 500ms
+                } else {
+                    const error = await response.json();
+                    formResponse.innerHTML = "<p class='error'>Error: " + (error.message || "Failed to send") + "</p>";
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Send Message';
+                }
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    formResponse.innerHTML = "<p class='error'>Request timeout. Please try again.</p>";
+                } else {
+                    formResponse.innerHTML = "<p class='error'>Server error. Try again later.</p>";
+                }
+                console.error(err);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Send Message';
+            }
+        });
+    });
 </script>
 
 </body>

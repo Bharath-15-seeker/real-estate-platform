@@ -164,6 +164,7 @@
 
 <script src="script.js"></script>
 <script src="script.js"></script>
+<script src="script.js"></script>
 <script>
     let currentPage = 1;
     let totalPages = 1;
@@ -302,62 +303,103 @@
         updateMapMarkers();
     }
 
-    // ⚡️ NEW FUNCTION: Handles the property deletion
+    // ⚡️ CORRECTED FUNCTION: Handles the property deletion
+   // ⚡️ CORRECTED FUNCTION: Handles the property deletion
     async function deleteProperty(propertyId) {
         if (!confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
             return;
         }
 
         try {
-            // Assuming the endpoint for deleting a property is /properties/{id}
+            // 1. Attempt the delete request
             await makeRequest(`/properties/properties/${propertyId}`, 'DELETE', null, true);
+
+            // This runs on 204 or valid JSON response
             showMessage('Property deleted successfully!', 'success');
 
+        } catch (error) {
+            // 2. Intercept the common "successful failure"
+            if (error.message && error.message.toLowerCase().includes('property deleted successfully')) {
+                showMessage('Property deleted successfully.', 'success');
+            } else {
+                // 3. Handle actual failures (permissions, database constraint, etc.)
+                showMessage('Failed to delete property: ' + error.message, 'error');
+                return; // <-- Key: stop here if it's a real failure
+            }
         }
-       catch (error) {
-        // Check if the error is the expected JSON parsing failure for a successful operation
-        if (error.message && error.message.includes('Property deleted successfully.')) {
-            // It's the expected *successful* error. Treat as success.
-            showMessage('Property deleted successfully.', 'success');
-        } else {
-            // It's a real failure
-            showMessage('Failed to delete property: ' + error.message, 'error');
-            return; // Stop here if it's a real failure
-        }
+
+        // 4. Refresh the list (This runs on both success paths: standard and intercepted)
+        await loadProperties();
+        searchProperties();
+        sortProperties();
     }
 
-    await loadProperties();
-    searchProperties();
-    sortProperties();
-    }
 
-
+    // ⚡️ CORRECTED FUNCTION: Handles toggling favorites
     async function toggleFavorite(propertyId, button) {
         if (!isAuthenticated()) {
             showMessage('Please login to save favorites', 'error');
             return;
         }
 
+        // Determine the action we are attempting: REMOVE or ADD
+        const isRemoving = userFavorites.has(propertyId);
+
+        // Define the expected success messages for error interception
+        const expectedSuccessRemoveMessage = 'removed from favorites';
+        const expectedSuccessAddMessage = 'added to favorites';
+
         try {
-            if (userFavorites.has(propertyId)) {
+            if (isRemoving) {
+                // --- DELETE logic (Remove Favorite) ---
                 const favorites = await makeRequest('/favorites', 'GET', null, true);
                 const favorite = favorites.find(f => f.property && f.property.id === propertyId);
                 if (favorite) {
                     await makeRequest(`/favorites/${favorite.id}`, 'DELETE', null, true);
+
+                    // If it passes the try block
                     userFavorites.delete(propertyId);
                     button.classList.remove('active');
                     showMessage('Removed from favorites', 'success');
                 }
             } else {
+                // --- POST logic (Add Favorite) ---
                 await makeRequest(`/favorites/${propertyId}`, 'POST', null, true);
+
+                // If it passes the try block
                 userFavorites.add(propertyId);
                 button.classList.add('active');
                 showMessage('Added to favorites', 'success');
             }
         } catch (error) {
-            showMessage('Failed to update favorites: ' + error.message, 'error');
+            // --- 🛑 THE FIX: Check if the thrown error is actually a success message ---
+            const errorMessage = error.message ? error.message.toLowerCase() : '';
+            let isSuccessError = false;
+
+            if (isRemoving && errorMessage.includes(expectedSuccessRemoveMessage)) {
+                // Case 1: We tried to REMOVE, and the error contains "removed from favorites"
+                isSuccessError = true;
+                userFavorites.delete(propertyId);
+                button.classList.remove('active');
+                showMessage('Removed from favorites', 'success');
+            }
+            else if (!isRemoving && errorMessage.includes(expectedSuccessAddMessage)) {
+                // Case 2: We tried to ADD, and the error contains "added to favorites"
+                isSuccessError = true;
+                userFavorites.add(propertyId);
+                button.classList.add('active');
+                showMessage('Added to favorites', 'success');
+            }
+
+            // If it wasn't one of the expected "success errors", it's a genuine failure
+            if (!isSuccessError) {
+                showMessage('Failed to update favorites: ' + error.message, 'error');
+            }
         }
     }
+
+    // ... (The rest of your functions: updatePagination, changePage, searchProperties, sortProperties,
+    // viewProperty, initMap, updateMapMarkers are fine and remain unchanged)
 
     function updatePagination() {
         totalPages = Math.ceil(filteredProperties.length / 12);

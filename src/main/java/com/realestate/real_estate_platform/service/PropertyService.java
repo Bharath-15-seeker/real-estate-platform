@@ -6,6 +6,7 @@ import com.realestate.real_estate_platform.entity.Property;
 import com.realestate.real_estate_platform.entity.PropertyType;
 import com.realestate.real_estate_platform.entity.User;
 import com.realestate.real_estate_platform.repositories.ContactRepository;
+import com.realestate.real_estate_platform.repositories.FavoriteRepository;
 import com.realestate.real_estate_platform.repositories.PropertyRepository;
 import com.realestate.real_estate_platform.repositories.UserRepository;
 import jakarta.transaction.Transactional;
@@ -35,6 +36,7 @@ public class PropertyService {
     private final PropertyRepository propertyRepo;
     private final UserRepository userRepository;
     private final ContactRepository contactRepository;
+    private final FavoriteRepository favoriteRepository;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
@@ -279,6 +281,7 @@ public class PropertyService {
             }
         }
 
+        favoriteRepository.deleteAllByPropertyId(id);
         contactRepository.deleteByPropertyId(id);
         propertyRepo.delete(property);
     }
@@ -302,6 +305,7 @@ public class PropertyService {
                 }
             }
         }
+        favoriteRepository.deleteAllByPropertyId(id);
         contactRepository.deleteByPropertyId(id);
         propertyRepo.delete(property);
     }
